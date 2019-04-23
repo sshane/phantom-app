@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 accelTextView.setText(progress / 10.0 + " mph");
+                preferences.edit().putString("desiredSpeed", String.valueOf(progress / 10)).apply();
             }
 
             @Override
@@ -113,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
     Long goDown = Long.valueOf(0);
     Long goDuration = Long.valueOf(0);
-    Boolean buttonHeld = false;
-    Boolean holdMessage=true;
+    Boolean holdMessage = false;
 
     @SuppressLint("ClickableViewAccessibility")
     public void setUpButton() {
@@ -124,16 +124,15 @@ public class MainActivity extends AppCompatActivity {
                 while (true) {
                     try {
                         Thread.sleep(500);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    System.out.println(System.currentTimeMillis() - goDown);
-                    if ((System.currentTimeMillis() - goDown) > 150 && holdMessage) {
+                    if ((System.currentTimeMillis() - goDown) > 200 && holdMessage) {
                         holdMessage = false;
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                new sendPhantomCommand().execute("True", "5", "0", "");
+                                new sendPhantomCommand().execute("True", preferences.getString("desiredSpeed", "1.0"), "0", "0", "move");
                                 makeSnackbar("Moving car...");
                             }
                         });
@@ -147,21 +146,18 @@ public class MainActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     goDown = System.currentTimeMillis();
-                    buttonHeld = true;
                     holdMessage = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    new sendPhantomCommand().execute("False", "0", "0", "");
-                    buttonHeld = false;
                     holdMessage = false;
                     goDuration = System.currentTimeMillis() - goDown;
-                    if (goDuration < 150) {
+                    if (goDuration < 200) {
                         makeSnackbar("You must hold button down for acceleration!");
                     } else {
-                        //makeSnackbar("Button held for " + goDuration + " ms.");
+                        new sendPhantomCommand().execute("True", "0.0", "0", "0", "brake");
                         makeSnackbar("Stopping car!");
                     }
-                    System.out.println(buttonHeld);
-                    System.out.println(goDuration);
+                    System.out.println("Button held for " + goDuration + " ms");
+
                 }
                 return false;
             }
@@ -271,12 +267,16 @@ public class MainActivity extends AppCompatActivity {
         connectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!buttonView.isPressed()) {
+                    return;
+                }
                 if (isChecked) {
                     if (!ipEditText.getText().toString().equals("") && ipEditText.getText().toString().length() >= 7) {
                         ipEditText.setEnabled(false);
+                        connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection");
                         makeSnackbar("Testing connection...");
-                        new CheckEON().execute();
+                        new sendPhantomCommand().execute("True", "0.0", "0", "0", "enable"); //enable phantom mode
                     } else {
                         connectSwitch.setChecked(false);
                         makeSnackbar("Please enter an IP!");
@@ -286,23 +286,20 @@ public class MainActivity extends AppCompatActivity {
 
 
                 } else {
-                    //stopService(listenerService);
-                    listeningTextView.setText("Not Connected");
-                    steerCard.setVisibility(View.GONE);
-                    accelCard.setVisibility(View.GONE);
-                    titleTextView.setVisibility(View.GONE);
-                    ipEditTextLayout.setVisibility(View.VISIBLE);
-                    cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
-                    makeSnackbar("Disconnected!");
-                    ipEditText.setEnabled(true);
+                    connectSwitch.setEnabled(false);
+                    connectSwitch.setChecked(true);
+                    new sendPhantomCommand().execute("False", "0.0", "0", "0", "disable"); //disable phantom mode on EON
+                    listeningTextView.setText("Disabling...");
                 }
             }
         });
     }
 
-    public void testConnectionSuccessful(){
+    public void testConnectionSuccessful() {
+        connectSwitch.setChecked(true);
+        connectSwitch.setEnabled(true);
         preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
-        makeSnackbar("Connected!");
+        //makeSnackbar("Connected!");
         listeningTextView.setText("Connected!");
         ipEditTextLayout.setVisibility(View.GONE);
         cardViewMain.animate().translationY(700).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
@@ -331,26 +328,48 @@ public class MainActivity extends AppCompatActivity {
                 testConnectionSuccessful();
             } else {
                 connectSwitch.setChecked(false);
+                connectSwitch.setEnabled(true);
                 makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
             }
         }
     }
 
-    public class sendPhantomCommand extends AsyncTask<String, Void, Boolean> {
+    public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
 
-        protected Boolean doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
             Boolean result = new SSHClass().sendPhantomCommand(MainActivity.this, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
-            return result;
+            return new String[]{result.toString(), params[4]};
         }
 
-        protected void onPostExecute(Boolean result) {
-            if (result) {
-                makeSnackbar("Phantom successful!");
+        protected void onPostExecute(String... result) {
+            if (result[0].equals("true")) {
+                System.out.println(result[1]);
+                if (result[1].equals("enable")) {
+                    testConnectionSuccessful();
+                    makeSnackbar("Enabled Phantom!");
+                } else if (result[1].equals("disable")) {
+                    makeSnackbar("Disabled Phantom!");
+                    doDisable();
+                } else {
+                    makeSnackbar("Phantom successful!");
+                }
             } else {
-                connectSwitch.setChecked(false);
+                doDisable();
                 makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
             }
         }
+    }
+
+    public void doDisable() {
+        connectSwitch.setChecked(false);
+        connectSwitch.setEnabled(true);
+        listeningTextView.setText("Not Connected");
+        steerCard.setVisibility(View.GONE);
+        accelCard.setVisibility(View.GONE);
+        titleTextView.setVisibility(View.GONE);
+        ipEditTextLayout.setVisibility(View.VISIBLE);
+        cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
+        ipEditText.setEnabled(true);
     }
 
     public void writeSupportingFiles() {
