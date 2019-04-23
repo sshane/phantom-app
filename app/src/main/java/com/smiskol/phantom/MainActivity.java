@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                     if (!ipEditText.getText().toString().equals("") && ipEditText.getText().toString().length() >= 7) {
                         ipEditText.setEnabled(false);
                         connectSwitch.setEnabled(false);
-                        listeningTextView.setText("Testing connection");
+                        listeningTextView.setText("Testing connection...");
                         makeSnackbar("Testing connection...");
                         new sendPhantomCommand().execute("True", "0.0", "0", "0", "enable"); //enable phantom mode
                     } else {
@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(String... result) {
-            if (result[0].equals("true")) {
+            if (result[0].equals("True")) {
                 System.out.println(result[1]);
                 if (result[1].equals("enable")) {
                     testConnectionSuccessful();
