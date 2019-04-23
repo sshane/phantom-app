@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 accelTextView.setText(progress / 10.0 + " mph");
-                preferences.edit().putString("desiredSpeed", String.valueOf(progress / 10)).apply();
+                preferences.edit().putString("desiredSpeed", String.valueOf((progress / 10.0) * 0.44704)).apply();
             }
 
             @Override
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                new sendPhantomCommand().execute("True", preferences.getString("desiredSpeed", "1.0"), "0", "0", "move");
+                                new sendPhantomCommand().execute("true", preferences.getString("desiredSpeed", "1.0"), "0", "0", "move");
                                 makeSnackbar("Moving car...");
                             }
                         });
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                     if (goDuration < 200) {
                         makeSnackbar("You must hold button down for acceleration!");
                     } else {
-                        new sendPhantomCommand().execute("True", "0.0", "0", "0", "brake");
+                        new sendPhantomCommand().execute("true", "0.0", "0", "0", "brake");
                         makeSnackbar("Stopping car!");
                     }
                     System.out.println("Button held for " + goDuration + " ms");
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
                         makeSnackbar("Testing connection...");
-                        new sendPhantomCommand().execute("True", "0.0", "0", "0", "enable"); //enable phantom mode
+                        new sendPhantomCommand().execute("true", "0.0", "0", "0", "enable"); //enable phantom mode
                     } else {
                         connectSwitch.setChecked(false);
                         makeSnackbar("Please enter an IP!");
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
-                    new sendPhantomCommand().execute("False", "0.0", "0", "0", "disable"); //disable phantom mode on EON
+                    new sendPhantomCommand().execute("false", "0.0", "0", "0", "disable"); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
                 }
             }
