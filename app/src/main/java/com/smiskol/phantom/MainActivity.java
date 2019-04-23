@@ -1,19 +1,32 @@
-package com.smiskol.opcontroller;
+package com.smiskol.phantom;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.File;
@@ -27,6 +40,15 @@ public class MainActivity extends AppCompatActivity {
     TextView steerTextView;
     TextView accelTextView;
     SeekBar accelSeekBar;
+    TextView listeningTextView;
+    Switch connectSwitch;
+    EditText ipEditText;
+    TextView titleTextView;
+    TextInputLayout ipEditTextLayout;
+    CardView steerCard;
+    CardView cardViewMain;
+    CardView accelCard;
+    Button goButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,14 +59,26 @@ public class MainActivity extends AppCompatActivity {
         steerTextView = findViewById(R.id.steerTextView);
         accelTextView = findViewById(R.id.accelTextView);
         accelSeekBar = findViewById(R.id.accelSeekBar);
+        listeningTextView = findViewById(R.id.connectedText);
+        connectSwitch = findViewById(R.id.connectSwitch);
+        ipEditTextLayout = findViewById(R.id.ipEditTextLayout);
+        ipEditText = findViewById(R.id.ipEditText);
+        steerCard = findViewById(R.id.steerCard);
+        accelCard = findViewById(R.id.accelCard);
+        titleTextView = findViewById(R.id.titleText);
+        cardViewMain = findViewById(R.id.cardViewMain);
+        goButton = findViewById(R.id.goButton);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         doWelcome();
+        startListeners();
+        setUpMainCard();
+        setUpButton();
 
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(progress - 50 + "°");
+                steerTextView.setText(progress - 20 + "°");
             }
 
             @Override
@@ -76,8 +110,74 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void doWelcome(){
-        if (preferences.getBoolean("welcome", true)){
+    Long goDown = Long.valueOf(0);
+    Long goDuration = Long.valueOf(0);
+    Boolean buttonHeld = false;
+    Boolean holdMessage=true;
+
+    public void setUpButton() {
+        new Thread(new Runnable() { //TODO: move to async task later
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(500);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    System.out.println(System.currentTimeMillis() - goDown);
+                    if ((System.currentTimeMillis() - goDown) > 150 && holdMessage) {
+                        holdMessage = false;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                makeSnackbar("Holding button...");
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+
+        goButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    goDown = System.currentTimeMillis();
+                    buttonHeld = true;
+                    holdMessage = true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    buttonHeld = false;
+                    holdMessage = false;
+                    goDuration = System.currentTimeMillis() - goDown;
+                    if (goDuration < 150) {
+                        makeSnackbar("You must hold button down for acceleration!");
+                    } else {
+                        makeSnackbar("Button held for " + goDuration + " ms.");
+                    }
+                    System.out.println(buttonHeld);
+                    System.out.println(goDuration);
+                }
+                return false;
+            }
+        });
+    }
+
+    public void setUpMainCard() {
+        ipEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                ipEditText.setFocusable(true);
+                ipEditText.setFocusableInTouchMode(true);
+
+                return false;
+            }
+        });
+        ipEditText.setText(preferences.getString("eonIP", ""));
+    }
+
+    public void doWelcome() {
+        if (preferences.getBoolean("welcome", true)) {
             welcomeDialog();
         }
     }
@@ -129,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void welcomeDialog() {
         new AlertDialog.Builder(this).setTitle("Welcome!")
-                .setMessage("op Controller is an app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
+                .setMessage("Phantom is an app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
                 .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -143,6 +243,92 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+    public void startListeners() {
+        /*addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new RunSpeedChange().execute(8);
+            }
+        });
+
+        decreaseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new RunSpeedChange().execute(-8);
+            }
+        });*/
+
+        //final Intent listenerService = new Intent(MainActivity.this, ListenerService.class);
+
+        connectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if (!ipEditText.getText().toString().equals("") && ipEditText.getText().toString().length() >= 7) {
+                        ipEditText.setEnabled(false);
+                        listeningTextView.setText("Testing connection");
+                        makeSnackbar("Testing connection...");
+                        //new CheckEON().execute();
+                        testConnectionSuccessful();
+                    } else {
+                        connectSwitch.setChecked(false);
+                        makeSnackbar("Please enter an IP!");
+                        Animation mShakeAnimation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
+                        ipEditTextLayout.startAnimation(mShakeAnimation);
+                    }
+
+
+                } else {
+                    //stopService(listenerService);
+                    listeningTextView.setText("Not Connected");
+                    steerCard.setVisibility(View.GONE);
+                    accelCard.setVisibility(View.GONE);
+                    titleTextView.setVisibility(View.GONE);
+                    ipEditTextLayout.setVisibility(View.VISIBLE);
+                    cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
+                    makeSnackbar("Disconnected!");
+                    ipEditText.setEnabled(true);
+                }
+            }
+        });
+    }
+
+    public void testConnectionSuccessful(){
+        preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
+        makeSnackbar("Connected!");
+        listeningTextView.setText("Connected!");
+        ipEditTextLayout.setVisibility(View.GONE);
+        cardViewMain.animate().translationY(700).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                steerCard.setVisibility(View.VISIBLE);
+                accelCard.setVisibility(View.VISIBLE);
+                titleTextView.setVisibility(View.VISIBLE);
+            }
+        }, 100);
+                /*if (!preferences.getBoolean("warning", false)) {
+                    warningDialog();
+                }*/
+    }
+
+    public class CheckEON extends AsyncTask<Void, Void, Boolean> {
+
+        protected Boolean doInBackground(Void... v) {
+            return new SSHClass().testConnection(MainActivity.this, ipEditText.getText().toString());
+        }
+
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                testConnectionSuccessful();
+            } else {
+                connectSwitch.setChecked(false);
+                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+            }
+        }
     }
 
     public void writeSupportingFiles() {

@@ -1,4 +1,4 @@
-package com.smiskol.opcontroller;
+package com.smiskol.phantom;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

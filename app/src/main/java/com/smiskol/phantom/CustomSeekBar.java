@@ -1,4 +1,4 @@
-package com.smiskol.opcontroller;
+package com.smiskol.phantom;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
-import android.widget.SeekBar;
 
 public class CustomSeekBar extends AppCompatSeekBar {
 
