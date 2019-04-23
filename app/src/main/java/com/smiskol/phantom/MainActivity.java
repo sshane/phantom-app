@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                makeSnackbar("Holding button...");
+                                makeSnackbar("Moving car...");
                             }
                         });
                     }
@@ -153,7 +153,8 @@ public class MainActivity extends AppCompatActivity {
                     if (goDuration < 150) {
                         makeSnackbar("You must hold button down for acceleration!");
                     } else {
-                        makeSnackbar("Button held for " + goDuration + " ms.");
+                        //makeSnackbar("Button held for " + goDuration + " ms.");
+                        makeSnackbar("Stopping car!");
                     }
                     System.out.println(buttonHeld);
                     System.out.println(goDuration);
