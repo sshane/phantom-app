@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(String... result) {
-            if (result[0].equals("True")) {
+            if (result[0].equals("true")) {
                 System.out.println(result[1]);
                 if (result[1].equals("enable")) {
                     testConnectionSuccessful();
