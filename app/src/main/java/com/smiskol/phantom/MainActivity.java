@@ -1,6 +1,7 @@
 package com.smiskol.phantom;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(progress - 20 + "°");
+                steerTextView.setText(progress - 50 + "°");
             }
 
             @Override
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
     Boolean buttonHeld = false;
     Boolean holdMessage=true;
 
+    @SuppressLint("ClickableViewAccessibility")
     public void setUpButton() {
         new Thread(new Runnable() { //TODO: move to async task later
             @Override
@@ -131,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                new sendPhantomCommand().execute("True", "5", "0", "");
                                 makeSnackbar("Moving car...");
                             }
                         });
@@ -147,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     buttonHeld = true;
                     holdMessage = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    new sendPhantomCommand().execute("False", "0", "0", "");
                     buttonHeld = false;
                     holdMessage = false;
                     goDuration = System.currentTimeMillis() - goDown;
@@ -164,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void setUpMainCard() {
         ipEditText.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -230,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void welcomeDialog() {
         new AlertDialog.Builder(this).setTitle("Welcome!")
-                .setMessage("Phantom is an app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
+                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
                 .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -271,8 +276,7 @@ public class MainActivity extends AppCompatActivity {
                         ipEditText.setEnabled(false);
                         listeningTextView.setText("Testing connection");
                         makeSnackbar("Testing connection...");
-                        //new CheckEON().execute();
-                        testConnectionSuccessful();
+                        new CheckEON().execute();
                     } else {
                         connectSwitch.setChecked(false);
                         makeSnackbar("Please enter an IP!");
@@ -325,6 +329,23 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean result) {
             if (result) {
                 testConnectionSuccessful();
+            } else {
+                connectSwitch.setChecked(false);
+                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+            }
+        }
+    }
+
+    public class sendPhantomCommand extends AsyncTask<String, Void, Boolean> {
+
+        protected Boolean doInBackground(String... params) {
+            Boolean result = new SSHClass().sendPhantomCommand(MainActivity.this, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            return result;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                makeSnackbar("Phantom successful!");
             } else {
                 connectSwitch.setChecked(false);
                 makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");

@@ -38,16 +38,15 @@ public class SSHClass {
         }
     }
 
-    public Boolean runSpeedChange(Context context, String eonIP, Integer speedChange) {
+    public Boolean sendPhantomCommand(Context context, String eonIP, String enabled, String desiredSpeed, String steeringAngle, String time) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
         StrictMode.setThreadPolicy(policy);
         try {
             JSch jsch = new JSch();
             File file = new File(context.getFilesDir(), "eon_id.ppk");
-            System.out.println("HERE! "+file.getAbsoluteFile());
-            System.out.println("HERE! "+eonIP);
-            System.out.println(speedChange.toString());
+            //System.out.println("HERE! "+file.getAbsoluteFile());
+            //System.out.println("HERE! "+eonIP);
             jsch.addIdentity(file.getAbsolutePath());
             Session session = jsch.getSession("root", eonIP, 8022);
 
@@ -60,7 +59,7 @@ public class SSHClass {
 
             ChannelExec channelssh = (ChannelExec) session.openChannel("exec");
 
-            channelssh.setCommand("python /data/openpilot/selfdrive/speed_controller.py " + speedChange.toString());
+            channelssh.setCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
             channelssh.connect();
             channelssh.disconnect();
             return true;
