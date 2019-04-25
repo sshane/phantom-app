@@ -8,6 +8,13 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
+    private int viewCount = 1;
+
+    public void setViewCount(int N) {
+        viewCount = N;
+        notifyDataSetChanged();
+    }
+
     public ViewPagerAdapter(FragmentManager fm) {
         super(fm);
     }
@@ -25,7 +32,7 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 2;
+        return viewCount;
     }
 
     @Nullable

@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     ViewPager viewPager;
     ViewPagerAdapter adapter;
     TabLayout tabLayout;
+    String eonIP = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -392,6 +393,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void doSuccessful() {
+        adapter.setViewCount(2);
+        viewPager.setCurrentItem(1);
+        tabLayout.setVisibility(View.VISIBLE);
         new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         //connectSwitch.setChecked(true);
         //connectSwitch.setEnabled(true);
@@ -463,6 +467,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void doDisable() {
+        viewPager.setCurrentItem(0);
+        adapter.setViewCount(1);
+        tabLayout.setVisibility(View.GONE);
         runPhantomThread = false;
         //connectSwitch.setChecked(false);
         //connectSwitch.setEnabled(true);

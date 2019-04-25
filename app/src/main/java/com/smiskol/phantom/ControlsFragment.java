@@ -1,11 +1,17 @@
 package com.smiskol.phantom;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -20,7 +26,7 @@ public class ControlsFragment extends Fragment {
     ImageButton speedPlusButton;
     ImageButton speedSubButton;
     TextView speedTextView;
-
+    SharedPreferences preferences;
 
 
     private OnFragmentInteractionListener mListener;
@@ -49,11 +55,77 @@ public class ControlsFragment extends Fragment {
         speedSubButton = view.findViewById(R.id.speedSubButton);
         holdButton = view.findViewById(R.id.holdButton);
         speedTextView = view.findViewById(R.id.speedTextView);
+        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         setUpListeners();
+        setUpHoldButton();
         return view;
     }
 
-    public void setUpListeners(){
+    @SuppressLint("ClickableViewAccessibility")
+    public void setUpHoldButton() {
+        holdButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    System.out.println("move button down");
+                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
+                    transition.startTransition(175);
+                    ((MainActivity) getActivity()).goDown = System.currentTimeMillis();
+                    ((MainActivity) getActivity()).holdMessage = true;
+                    ((MainActivity) getActivity()).buttonHeld = true;
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    System.out.println("move button up");
+                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
+                    transition.reverseTransition(175);
+                    ((MainActivity) getActivity()).holdMessage = false;
+                    ((MainActivity) getActivity()).buttonHeld = false;
+                    ((MainActivity) getActivity()).goDuration = System.currentTimeMillis() - ((MainActivity) getActivity()).goDown;
+                    if (((MainActivity) getActivity()).goDuration < 200) {
+                        makeSnackbar("You must hold button down for acceleration!");
+                    } else {
+                        String[] params = new String[]{"true", "0.0", String.valueOf(((MainActivity) getActivity()).steeringAngle), "0", "brake"};
+                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+                    }
+                    System.out.println("Button held for " + ((MainActivity) getActivity()).goDuration + " ms");
+                }
+                return false;
+            }
+        });
+    }
+
+    public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            ((MainActivity) getActivity()).runningProcesses += 1;
+            Boolean result = new SSHClass().sendPhantomCommand(getActivity(), preferences.getString("eonIP", ""), params[0], params[1], params[2], params[3]);
+            return new String[]{result.toString(), params[4]};
+        }
+
+        @Override
+        protected void onPostExecute(String... result) {
+            ((MainActivity) getActivity()).runningProcesses -= 1;
+            if (result[0].equals("true")) {
+                if (result[1].equals("brake")) {
+                    makeSnackbar("Stopping car!");
+                    System.out.println("stopping car");
+                } else if (result[1].equals("move")) {
+                    System.out.println("moving update");
+                    makeSnackbar("Moving car...");
+                } else if (result[1].equals("wheel")) {
+                    System.out.println("wheel update");
+                } else if (result[1].equals("move_with_wheel")) {
+                    System.out.println("move+wheel update");
+                }
+            } else {
+                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+            }
+        }
+    }
+
+
+    public void setUpListeners() {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -111,16 +183,11 @@ public class ControlsFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    public void makeSnackbar(String s) {
+        Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
+        snackbar.show();
+    }
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
