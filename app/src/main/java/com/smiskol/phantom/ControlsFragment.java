@@ -82,7 +82,9 @@ public class ControlsFragment extends Fragment {
                     ((MainActivity) getActivity()).buttonHeld = false;
                     ((MainActivity) getActivity()).goDuration = System.currentTimeMillis() - ((MainActivity) getActivity()).goDown;
                     if (((MainActivity) getActivity()).goDuration < 200) {
-                        makeSnackbar("You must hold button down for acceleration!");
+                        if (!(event.getAction() == MotionEvent.ACTION_CANCEL)) {
+                            makeSnackbar("You must hold button down for acceleration!");
+                        }
                     } else {
                         String[] params = new String[]{"true", "0.0", String.valueOf(((MainActivity) getActivity()).steeringAngle), "0", "brake"};
                         new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
