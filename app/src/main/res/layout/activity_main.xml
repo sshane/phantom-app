@@ -9,10 +9,10 @@
     android:background="#222222">
 
     <TextView
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/titleText"
         android:layout_marginTop="25dp"
-        android:layout_marginStart="35dp"
+        android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Phantom Controls"
@@ -21,7 +21,7 @@
 
 
     <android.support.v7.widget.CardView
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/steerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/accelCard"
         android:layout_below="@id/steerCard"
         android:layout_width="match_parent"
@@ -85,6 +85,15 @@
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:layout_marginTop="30dp">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/cardViewMain"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="-125dp"
+            android:background="@drawable/round_button"/>
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -116,7 +125,7 @@
                 android:layout_height="wrap_content"
                 android:min="20"
                 android:max="60"
-                android:progress="40"/>
+                android:progress="40" />
 
             <TextView
                 android:id="@+id/accelTextView"
@@ -146,6 +155,7 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView
+        android:visibility="gone"
         android:id="@+id/cardViewMain"
         android:layout_width="match_parent"
         android:layout_marginLeft="40dp"
