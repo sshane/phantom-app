@@ -4,11 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
@@ -22,7 +20,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -79,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(progress - 50 + "°");
+                steerTextView.setText((progress - 50) + "°");
+                preferences.edit().putInt("steeringAngle", (progress - 50)).apply();
             }
 
             @Override
@@ -92,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
+        accelTextView.setText("2.5 mph");
         accelSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -115,46 +113,98 @@ public class MainActivity extends AppCompatActivity {
     Long goDown = Long.valueOf(0);
     Long goDuration = Long.valueOf(0);
     Boolean holdMessage = false;
+    Boolean buttonHeld = false;
+    Boolean runPhantomThread = true;
+    Integer runningProcesses = 0;
+    Integer maxProcesses = 2;
+    Integer previousSteer = 0;
+
+    public class PhantomThread extends AsyncTask<Void, String, Boolean> {
+        @Override
+        protected Boolean doInBackground(Void... v) {
+            previousSteer = preferences.getInt("steeringAngle", 0);
+            while (true) {
+                System.out.println(runningProcesses);
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (runningProcesses > maxProcesses) {
+                    while (true) {
+                        System.out.println("waiting for excess processes to finish");
+                        try {
+                            Thread.sleep(250);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        if (runningProcesses <= maxProcesses) {
+                            break;
+                        }
+                    }
+                }
+
+                if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
+                    if (!previousSteer.equals(preferences.getInt("steeringAngle", 0))) {
+                        previousSteer = preferences.getInt("steeringAngle", 0);
+                        publishProgress("move_with_wheel");
+                    } else if ((System.currentTimeMillis() - goDown) > 200 && holdMessage) {
+                        holdMessage = false;
+                        publishProgress("move");
+                    }
+                } else if (!buttonHeld && !previousSteer.equals(preferences.getInt("steeringAngle", 0))) {
+                    previousSteer = preferences.getInt("steeringAngle", 0);
+                    publishProgress("wheel");
+                }
+                if (!runPhantomThread) {
+                    return true;
+                }
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(String... method) {
+            if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
+                String[] params = new String[]{"true", preferences.getString("desiredSpeed", "0.44704"), preferences.getString("steeringAngle", "0"), "0", method[0]};
+                new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+            } else { //must be wheel update
+                System.out.println("wheel update");
+                String[] params = new String[]{"true", "0", preferences.getString("steeringAngle", "0"), "0", method[0]};
+                new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            System.out.println("stopped phantom thread");
+            if (runPhantomThread) {
+                makeSnackbar("Lost connection to the EON!");
+                doDisable();
+            }
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     public void setUpButton() {
-        new Thread(new Runnable() { //TODO: move to async task later
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(500);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    if ((System.currentTimeMillis() - goDown) > 200 && holdMessage) {
-                        holdMessage = false;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                new sendPhantomCommand().execute("true", preferences.getString("desiredSpeed", "1.0"), "0", "0", "move");
-                                makeSnackbar("Moving car...");
-                            }
-                        });
-                    }
-                }
-            }
-        }).start();
-
         goButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    System.out.println("move button down");
                     goDown = System.currentTimeMillis();
                     holdMessage = true;
+                    buttonHeld = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    System.out.println("move button up");
                     holdMessage = false;
+                    buttonHeld = false;
                     goDuration = System.currentTimeMillis() - goDown;
                     if (goDuration < 200) {
                         makeSnackbar("You must hold button down for acceleration!");
                     } else {
-                        new sendPhantomCommand().execute("true", "0.0", "0", "0", "brake");
-                        makeSnackbar("Stopping car!");
+                        String[] params = new String[]{"true", "0.0", preferences.getString("steeringAngle", "0"), "0", "brake"};
+                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
                     }
                     System.out.println("Button held for " + goDuration + " ms");
 
@@ -248,22 +298,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startListeners() {
-        /*addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new RunSpeedChange().execute(8);
-            }
-        });
-
-        decreaseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new RunSpeedChange().execute(-8);
-            }
-        });*/
-
-        //final Intent listenerService = new Intent(MainActivity.this, ListenerService.class);
-
         connectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -276,7 +310,8 @@ public class MainActivity extends AppCompatActivity {
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
                         makeSnackbar("Testing connection...");
-                        new sendPhantomCommand().execute("true", "0.0", "0", "0", "enable"); //enable phantom mode
+                        String[] params = new String[]{"true", "0.0", "0", "0", "enable"};
+                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
                     } else {
                         connectSwitch.setChecked(false);
                         makeSnackbar("Please enter an IP!");
@@ -288,14 +323,19 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
-                    new sendPhantomCommand().execute("false", "0.0", "0", "0", "disable"); //disable phantom mode on EON
+                    String[] params = new String[]{"false", "0.0", "0", "0", "disable"};
+                    new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
                 }
             }
         });
     }
 
-    public void testConnectionSuccessful() {
+    public void doSuccessful() {
+        if (!runPhantomThread) {
+            runPhantomThread = true;
+            new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
         preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
@@ -317,50 +357,48 @@ public class MainActivity extends AppCompatActivity {
                 }*/
     }
 
-    public class CheckEON extends AsyncTask<Void, Void, Boolean> {
-
-        protected Boolean doInBackground(Void... v) {
-            return new SSHClass().testConnection(MainActivity.this, ipEditText.getText().toString());
-        }
-
-        protected void onPostExecute(Boolean result) {
-            if (result) {
-                testConnectionSuccessful();
-            } else {
-                connectSwitch.setChecked(false);
-                connectSwitch.setEnabled(true);
-                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
-            }
-        }
-    }
-
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
 
+        @Override
         protected String[] doInBackground(String... params) {
+            runningProcesses += 1;
             Boolean result = new SSHClass().sendPhantomCommand(MainActivity.this, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
+        @Override
         protected void onPostExecute(String... result) {
+            runningProcesses -= 1;
             if (result[0].equals("true")) {
-                System.out.println(result[1]);
                 if (result[1].equals("enable")) {
-                    testConnectionSuccessful();
+                    doSuccessful();
                     makeSnackbar("Enabled Phantom!");
                 } else if (result[1].equals("disable")) {
-                    makeSnackbar("Disabled Phantom!");
                     doDisable();
-                } else {
-                    makeSnackbar("Phantom successful!");
+                    makeSnackbar("Disabled Phantom!");
+                } else if (result[1].equals("brake")) {
+                    makeSnackbar("Stopping car!");
+                    System.out.println("stopping car");
+                } else if (result[1].equals("move")) {
+                    System.out.println("moving update");
+                    makeSnackbar("Moving car...");
+                } else if (result[1].equals("wheel")) {
+                    System.out.println("wheel update");
                 }
             } else {
-                doDisable();
-                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+                if (result[1].equals("disable")) {
+                    connectSwitch.setEnabled(true);
+                    makeSnackbar("Error disabling Phantom mode!");
+                } else {
+                    doDisable();
+                    makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+                }
             }
         }
     }
 
     public void doDisable() {
+        runPhantomThread = false;
         connectSwitch.setChecked(false);
         connectSwitch.setEnabled(true);
         listeningTextView.setText("Not Connected");

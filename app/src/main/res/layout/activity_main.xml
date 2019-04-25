@@ -114,7 +114,9 @@
                 android:layout_marginTop="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="100" />
+                android:min="10"
+                android:max="50"
+                android:progress="25"/>
 
             <TextView
                 android:id="@+id/accelTextView"
@@ -136,7 +138,7 @@
                     android:layout_weight="1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="GO"
+                    android:text="HOLD TO GO"
                     android:textColor="#1bb75e"
                     style="@style/Widget.AppCompat.Button.Borderless.Colored" />
             </LinearLayout>
