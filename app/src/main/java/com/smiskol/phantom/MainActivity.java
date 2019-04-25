@@ -72,12 +72,13 @@ public class MainActivity extends AppCompatActivity {
         startListeners();
         setUpMainCard();
         setUpButton();
+        connectSwitch.setChecked(false);
 
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText((progress - 50) + "°");
-                preferences.edit().putInt("steeringAngle", (progress - 50)).apply();
+                steerTextView.setText(-(progress - 100) + "°");
+                steeringAngle = -(progress - 100);
             }
 
             @Override
@@ -90,12 +91,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        accelTextView.setText("2.5 mph");
         accelSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 accelTextView.setText(progress / 10.0 + " mph");
-                preferences.edit().putString("desiredSpeed", String.valueOf((progress / 10.0) * 0.44704)).apply();
+                desiredSpeed = (progress / 10.0) * 0.44704; //convert to m/s
             }
 
             @Override
@@ -118,11 +118,15 @@ public class MainActivity extends AppCompatActivity {
     Integer runningProcesses = 0;
     Integer maxProcesses = 2;
     Integer previousSteer = 0;
+    Integer steeringAngle = 0;
+    Double desiredSpeed = 0.0;
 
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
         protected Boolean doInBackground(Void... v) {
-            previousSteer = preferences.getInt("steeringAngle", 0);
+            runPhantomThread = true;
+            previousSteer = steeringAngle;
+            System.out.println("started phantom thread");
             while (true) {
                 System.out.println(runningProcesses);
                 try {
@@ -146,15 +150,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
-                    if (!previousSteer.equals(preferences.getInt("steeringAngle", 0))) {
-                        previousSteer = preferences.getInt("steeringAngle", 0);
+                    if (!previousSteer.equals(steeringAngle)) {
+                        previousSteer = steeringAngle;
                         publishProgress("move_with_wheel");
                     } else if ((System.currentTimeMillis() - goDown) > 200 && holdMessage) {
                         holdMessage = false;
                         publishProgress("move");
                     }
-                } else if (!buttonHeld && !previousSteer.equals(preferences.getInt("steeringAngle", 0))) {
-                    previousSteer = preferences.getInt("steeringAngle", 0);
+                } else if (!buttonHeld && !previousSteer.equals(steeringAngle)) {
+                    previousSteer = steeringAngle;
                     publishProgress("wheel");
                 }
                 if (!runPhantomThread) {
@@ -166,11 +170,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
-                String[] params = new String[]{"true", preferences.getString("desiredSpeed", "0.44704"), preferences.getString("steeringAngle", "0"), "0", method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed), String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
                 System.out.println("wheel update");
-                String[] params = new String[]{"true", "0", preferences.getString("steeringAngle", "0"), "0", method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }
@@ -203,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                     if (goDuration < 200) {
                         makeSnackbar("You must hold button down for acceleration!");
                     } else {
-                        String[] params = new String[]{"true", "0.0", preferences.getString("steeringAngle", "0"), "0", "brake"};
+                        String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), "0", "brake"};
                         new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
                     }
                     System.out.println("Button held for " + goDuration + " ms");
@@ -332,10 +336,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void doSuccessful() {
-        if (!runPhantomThread) {
-            runPhantomThread = true;
-            new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
+        new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
         preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
@@ -384,6 +385,8 @@ public class MainActivity extends AppCompatActivity {
                     makeSnackbar("Moving car...");
                 } else if (result[1].equals("wheel")) {
                     System.out.println("wheel update");
+                }else if(result[1].equals("move_with_wheel")){
+                    System.out.println("move+wheel update");
                 }
             } else {
                 if (result[1].equals("disable")) {
@@ -457,47 +460,10 @@ public class MainActivity extends AppCompatActivity {
             ioe.printStackTrace();
             makeSnackbar("Error writing support files.");
         }
-
-        try {
-            File file = new File(getFilesDir(), "controller_listener.py");
-            if (!file.exists() || file.length() == 0) {
-                FileOutputStream fOut = new FileOutputStream(file);
-                OutputStreamWriter osw = new OutputStreamWriter(fOut);
-
-                String controllerListener = "import sys\n" +
-                        "live_controller_file = '/data/live_controller_file'\n" +
-                        "\n" +
-                        "def write_file(a):\n" +
-                        "    try:\n" +
-                        "        with open(live_controller_file, 'r') as speed:\n" +
-                        "            modified_speed=float(speed.read())+a\n" +
-                        "        with open(live_controller_file, 'w') as speed:\n" +
-                        "            speed.write(str(modified_speed))\n" +
-                        "    except: #in case file doesn't exist or is empty\n" +
-                        "        with open(live_controller_file, 'w') as speed:\n" +
-                        "            speed.write(str(28.0))\n" +
-                        "\n" +
-                        "if __name__ == \"__main__\":\n" +
-                        "    write_file(int(sys.argv[1]))";
-
-                osw.write(controllerListener);
-
-                osw.close();
-                System.out.println("File written");
-            } else {
-                System.out.println("File already written");
-            }
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            makeSnackbar("Error writing support files.");
-        }
-
     }
 
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
-
         snackbar.show();
     }
 
