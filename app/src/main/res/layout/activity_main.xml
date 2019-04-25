@@ -6,12 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:animateLayoutChanges="true"
+    android:layout_gravity="center"
     android:background="#222222">
 
+    <include layout="@layout/toolbar_layout"></include>
+
+    <android.support.design.widget.TabLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tabs"
+        android:background="@color/colorPrimaryDark"
+        android:elevation="4dp"
+        android:minHeight="?attr/actionBarSize"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabTextColor="#FFF"
+        app:tabSelectedTextColor="#FFFFFF"/>
+
+    <android.support.v4.view.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/pager"></android.support.v4.view.ViewPager>
+
     <TextView
-        android:visibility="visible"
+        android:fontFamily="@font/product"
+        android:visibility="gone"
         android:id="@+id/titleText"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="40dp"
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,9 +40,101 @@
         android:textSize="35sp"
         android:textColor="#FFFFFF" />
 
+    <LinearLayout
+        android:id="@+id/welcomeLayoutTitle"
+        android:layout_marginTop="40dp"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:visibility="gone"
+            android:fontFamily="@font/product"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to Phantom"
+            android:textSize="35sp"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:visibility="gone"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="@font/product"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Control your car with your phone."
+            android:textSize="15sp"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:visibility="gone"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:id="@+id/welcomeLayout"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:fontFamily="@font/product"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter your EON's IP to get started!"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF" />
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/ipEditTextLayoutNew"
+            android:layout_marginTop="15dp"
+            android:textColorHint="#FFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/ipEditTextNew"
+                android:textColor="#FFFFFF"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:maxLines="1"
+                android:lines="1"
+                android:maxLength="15"
+                android:layout_marginBottom="17dp"
+                android:hint="EON IP" />
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:id="@+id/connectLayout"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="4dp"
+                android:id="@+id/connectSwitchNew" />
+
+            <TextView
+                android:fontFamily="@font/product"
+                android:textSize="20dp"
+                android:id="@+id/connectedTextNew"
+                android:layout_width="wrap_content"
+                android:text="Not Connected"
+                android:textColor="#FFFFFF"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
 
     <android.support.v7.widget.CardView
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/steerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,6 +152,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:fontFamily="@font/product"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Steering Controls"
@@ -46,6 +160,7 @@
                 android:textColor="#000000" />
 
             <TextView
+                android:fontFamily="@font/product"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
@@ -65,6 +180,7 @@
                 android:progressDrawable="@android:color/transparent" />
 
             <TextView
+                android:fontFamily="@font/product"
                 android:id="@+id/steerTextView"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
@@ -73,10 +189,140 @@
         </LinearLayout>
     </android.support.v7.widget.CardView>
 
+    <LinearLayout
+        android:visibility="gone"
+        android:layout_marginTop="65dp"
+        android:gravity="center"
+        android:id="@+id/steerLayout"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/titleText"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:fontFamily="@font/product"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Steering Control" />
+
+        <com.smiskol.phantom.CustomSeekBar
+            android:id="@+id/steerSeekBarNew"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:progress="100"
+            android:progressDrawable="@android:color/transparent" />
+
+        <TextView
+            android:fontFamily="@font/product"
+            android:id="@+id/steerTextViewNew"
+            android:layout_marginTop="15dp"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:text="0°" />
+
+    </LinearLayout>
+
+
+    <View
+        android:visibility="gone"
+        android:layout_marginTop="25dp"
+        android:layout_below="@id/steerLayout"
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333" />
+
+    <LinearLayout
+        android:visibility="gone"
+        android:layout_marginTop="25dp"
+        android:gravity="center"
+        android:id="@+id/accelLayout"
+        android:layout_below="@id/divider"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:fontFamily="@font/product"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Control" />
+
+        <LinearLayout
+            android:id="@+id/speedButtons"
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:onClick="speedButtonSubClick"
+                android:id="@+id/speedSubButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/round_button_sub" />
+
+            <ImageButton
+                android:layout_marginStart="80dp"
+                android:onClick="speedButtonPlusClick"
+                android:id="@+id/speedPlusButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/round_button_plus" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/speedTextView"
+            android:layout_marginTop="15dp"
+            android:fontFamily="@font/product"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5.0 mph" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/holdButton"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_alignParentBottom="true"
+        android:foreground="@drawable/hold_ripple"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:background="@drawable/hold_animation"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="55sp"
+            android:fontFamily="@font/product_bold"
+            android:text="HOLD" />
+    </LinearLayout>
+
     <android.support.v7.widget.CardView
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/accelCard"
-        android:layout_below="@id/steerCard"
+        android:layout_below="@id/accelLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -86,14 +332,6 @@
         android:layout_marginRight="40dp"
         android:layout_marginTop="30dp">
 
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/cardViewMain"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="-125dp"
-            android:background="@drawable/round_button"/>
-
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -102,6 +340,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:fontFamily="@font/product"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Acceleration Control"
@@ -109,6 +348,7 @@
                 android:textColor="#000000" />
 
             <TextView
+                android:fontFamily="@font/product"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
                 android:layout_width="wrap_content"
@@ -128,6 +368,7 @@
                 android:progress="40" />
 
             <TextView
+                android:fontFamily="@font/product"
                 android:id="@+id/accelTextView"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
@@ -143,6 +384,7 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:fontFamily="@font/product"
                     android:id="@+id/goButton"
                     android:layout_weight="1"
                     android:layout_width="wrap_content"
@@ -214,6 +456,7 @@
                         android:id="@+id/connectSwitch" />
 
                     <TextView
+                        android:fontFamily="@font/product"
                         android:textSize="20dp"
                         android:layout_centerHorizontal="true"
                         android:id="@+id/connectedText"
@@ -266,5 +509,4 @@
             </LinearLayout>
         </LinearLayout>
     </android.support.v7.widget.CardView>
-
 </RelativeLayout>

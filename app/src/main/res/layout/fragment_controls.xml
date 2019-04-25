@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    tools:context=".ControlsFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        android:background="#222222">
+
+        <TextView
+            android:fontFamily="@font/product"
+            android:id="@+id/titleText"
+            android:layout_marginTop="60dp"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phantom Controls"
+            android:textSize="35sp"
+            android:textColor="#FFFFFF" />
+
+        <LinearLayout
+            android:layout_marginTop="65dp"
+            android:gravity="center"
+            android:id="@+id/steerLayout"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_below="@id/titleText"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:fontFamily="@font/product"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Steering Control" />
+
+            <com.smiskol.phantom.CustomSeekBar
+                android:id="@+id/steerSeekBarNew"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="200"
+                android:progress="100"
+                android:progressDrawable="@android:color/transparent" />
+
+            <TextView
+                android:fontFamily="@font/product"
+                android:id="@+id/steerTextViewNew"
+                android:layout_marginTop="15dp"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp"
+                android:text="0°" />
+
+        </LinearLayout>
+
+
+        <View
+            android:layout_marginTop="25dp"
+            android:layout_below="@id/steerLayout"
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333" />
+
+        <LinearLayout
+            android:layout_marginTop="25dp"
+            android:gravity="center"
+            android:id="@+id/accelLayout"
+            android:layout_below="@id/divider"
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:fontFamily="@font/product"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Acceleration Control" />
+
+            <LinearLayout
+                android:id="@+id/speedButtons"
+                android:layout_marginTop="15dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/speedSubButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_sub" />
+
+                <ImageButton
+                    android:layout_marginStart="80dp"
+                    android:id="@+id/speedPlusButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_button_plus" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/speedTextView"
+                android:layout_marginTop="15dp"
+                android:fontFamily="@font/product"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5.0 mph" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/holdButton"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_alignParentBottom="true"
+            android:foreground="@drawable/hold_ripple"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="@drawable/hold_animation"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="55sp"
+                android:fontFamily="@font/product_bold"
+                android:text="HOLD" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</FrameLayout>

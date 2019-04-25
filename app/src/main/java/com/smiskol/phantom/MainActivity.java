@@ -6,37 +6,46 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.TransitionDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toolbar;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
     CustomSeekBar steerSeekBar;
     TextView steerTextView;
-    TextView accelTextView;
+    TextView speedTextView;
     SeekBar accelSeekBar;
     TextView listeningTextView;
     Switch connectSwitch;
@@ -46,35 +55,64 @@ public class MainActivity extends AppCompatActivity {
     CardView steerCard;
     CardView cardViewMain;
     CardView accelCard;
+    LinearLayout welcomeLayoutTitle;
+    LinearLayout welcomeLayout;
+    LinearLayout connectLayout;
+    LinearLayout steerLayout;
+    LinearLayout accelLayout;
     Button goButton;
+    LinearLayout holdButton;
+    ImageButton speedPlusButton;
+    ImageButton speedSubButton;
+    android.support.v7.widget.Toolbar toolbar;
+    ViewPager viewPager;
+    ViewPagerAdapter adapter;
+    TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        steerSeekBar = findViewById(R.id.steerSeekBar);
-        steerTextView = findViewById(R.id.steerTextView);
-        accelTextView = findViewById(R.id.accelTextView);
+        steerSeekBar = findViewById(R.id.steerSeekBarNew);
+        steerTextView = findViewById(R.id.steerTextViewNew);
+        speedTextView = findViewById(R.id.speedTextView);
         accelSeekBar = findViewById(R.id.accelSeekBar);
-        listeningTextView = findViewById(R.id.connectedText);
-        connectSwitch = findViewById(R.id.connectSwitch);
-        ipEditTextLayout = findViewById(R.id.ipEditTextLayout);
-        ipEditText = findViewById(R.id.ipEditText);
+        listeningTextView = findViewById(R.id.connectedTextNew);
+        connectSwitch = findViewById(R.id.connectSwitchNew);
+        ipEditTextLayout = findViewById(R.id.ipEditTextLayoutNew);
+        ipEditText = findViewById(R.id.ipEditTextNew);
         steerCard = findViewById(R.id.steerCard);
         accelCard = findViewById(R.id.accelCard);
+        steerLayout = findViewById(R.id.steerLayout);
+        accelLayout = findViewById(R.id.accelLayout);
         titleTextView = findViewById(R.id.titleText);
         cardViewMain = findViewById(R.id.cardViewMain);
+        welcomeLayout = findViewById(R.id.welcomeLayout);
+        welcomeLayoutTitle = findViewById(R.id.welcomeLayoutTitle);
+        connectLayout = findViewById(R.id.connectLayout);
         goButton = findViewById(R.id.goButton);
+        speedPlusButton = findViewById(R.id.speedPlusButton);
+        speedSubButton = findViewById(R.id.speedSubButton);
+        holdButton = findViewById(R.id.holdButton);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        toolbar = findViewById(R.id.toolBar);
+        setSupportActionBar(toolbar);
+        viewPager = findViewById(R.id.pager);
+        adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(adapter);
+        tabLayout = findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
+        getSupportActionBar().hide();
 
         doWelcome();
         startListeners();
         setUpMainCard();
-        setUpButton();
+        setUpHoldButton();
         connectSwitch.setChecked(false);
 
-        steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        /*steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 steerTextView.setText(-(progress - 100) + "°");
@@ -90,11 +128,11 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
-        });
+        });*/
         accelSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                accelTextView.setText(progress / 10.0 + " mph");
+                speedTextView.setText(progress / 10.0 + " mph");
                 desiredSpeed = (progress / 10.0) * 0.44704; //convert to m/s
             }
 
@@ -110,6 +148,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+        //you can leave it empty
+    }
+
+    public void speedButtonPlusClick(View view) {
+        desiredSpeed = Math.min(desiredSpeed + 0.5, 10);
+        speedTextView.setText(String.valueOf(desiredSpeed) + " mph");
+    }
+
+    public void speedButtonSubClick(View view) {
+        desiredSpeed = Math.max(desiredSpeed - 0.5, 2);
+        speedTextView.setText(String.valueOf(desiredSpeed) + " mph");
+    }
+
     Long goDown = Long.valueOf(0);
     Long goDuration = Long.valueOf(0);
     Boolean holdMessage = false;
@@ -119,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
     Integer maxProcesses = 2;
     Integer previousSteer = 0;
     Integer steeringAngle = 0;
-    Double desiredSpeed = 0.0;
+    Double desiredSpeed = 5.0;
 
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
@@ -190,17 +243,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    public void setUpButton() {
-        goButton.setOnTouchListener(new View.OnTouchListener() {
+    public void setUpHoldButton() {
+        holdButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     System.out.println("move button down");
+                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
+                    transition.startTransition(175);
                     goDown = System.currentTimeMillis();
                     holdMessage = true;
                     buttonHeld = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     System.out.println("move button up");
+                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
+                    transition.reverseTransition(175);
                     holdMessage = false;
                     buttonHeld = false;
                     goDuration = System.currentTimeMillis() - goDown;
@@ -211,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
                         new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
                     }
                     System.out.println("Button held for " + goDuration + " ms");
-
                 }
                 return false;
             }
@@ -337,22 +393,28 @@ public class MainActivity extends AppCompatActivity {
 
     public void doSuccessful() {
         new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        connectSwitch.setChecked(true);
-        connectSwitch.setEnabled(true);
-        preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
+        //connectSwitch.setChecked(true);
+        //connectSwitch.setEnabled(true);
+        //preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
         //makeSnackbar("Connected!");
-        listeningTextView.setText("Connected!");
-        ipEditTextLayout.setVisibility(View.GONE);
-        cardViewMain.animate().translationY(700).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
-        final Handler handler = new Handler();
+        //listeningTextView.setText("Connected!");
+        //ipEditTextLayout.setVisibility(View.GONE);
+        //cardViewMain.animate().translationY(700).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
+        /*final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                steerCard.setVisibility(View.VISIBLE);
-                accelCard.setVisibility(View.VISIBLE);
+                //steerCard.setVisibility(View.VISIBLE);
+                steerLayout.setVisibility(View.VISIBLE);
+                //accelCard.setVisibility(View.VISIBLE);
+                welcomeLayoutTitle.setVisibility(View.GONE);
+                welcomeLayout.setVisibility(View.GONE);
+                connectLayout.setVisibility(View.GONE);
+                holdButton.setVisibility(View.VISIBLE);
+                accelLayout.setVisibility(View.VISIBLE);
                 titleTextView.setVisibility(View.VISIBLE);
             }
-        }, 100);
+        }, 100);*/
                 /*if (!preferences.getBoolean("warning", false)) {
                     warningDialog();
                 }*/
@@ -385,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
                     makeSnackbar("Moving car...");
                 } else if (result[1].equals("wheel")) {
                     System.out.println("wheel update");
-                }else if(result[1].equals("move_with_wheel")){
+                } else if (result[1].equals("move_with_wheel")) {
                     System.out.println("move+wheel update");
                 }
             } else {
@@ -402,15 +464,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void doDisable() {
         runPhantomThread = false;
-        connectSwitch.setChecked(false);
-        connectSwitch.setEnabled(true);
-        listeningTextView.setText("Not Connected");
-        steerCard.setVisibility(View.GONE);
-        accelCard.setVisibility(View.GONE);
-        titleTextView.setVisibility(View.GONE);
-        ipEditTextLayout.setVisibility(View.VISIBLE);
-        cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
-        ipEditText.setEnabled(true);
+        //connectSwitch.setChecked(false);
+        //connectSwitch.setEnabled(true);
+        //listeningTextView.setText("Not Connected");
+        //steerCard.setVisibility(View.GONE);
+        //steerLayout.setVisibility(View.GONE);
+        //accelCard.setVisibility(View.GONE);
+        //welcomeLayoutTitle.setVisibility(View.VISIBLE);
+        //welcomeLayout.setVisibility(View.VISIBLE);
+        //connectLayout.setVisibility(View.VISIBLE);
+        //holdButton.setVisibility(View.GONE);
+        //accelLayout.setVisibility(View.GONE);
+        //titleTextView.setVisibility(View.GONE);
+        //ipEditTextLayout.setVisibility(View.VISIBLE);
+        //cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
+        //ipEditText.setEnabled(true);
     }
 
     public void writeSupportingFiles() {

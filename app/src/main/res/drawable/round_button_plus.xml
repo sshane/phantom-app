@@ -20,16 +20,16 @@
                 android:width="1.5dp"
                 android:color="#6d6d6d" />
             <size
-                android:width="80dp"
-                android:height="80dp" />
+                android:width="65dp"
+                android:height="65dp" />
         </shape>
     </item>
     <item
-        android:drawable="@drawable/ic_add_black_24dp"
-        android:top="15dp"
-        android:bottom="20dp"
-        android:right="20dp"
-        android:left="20dp">
+        android:drawable="@drawable/ic_plus"
+        android:top="25dp"
+        android:bottom="25dp"
+        android:right="25dp"
+        android:left="25dp">
         <solid android:color="#FFFFFF" />
 
     </item>
