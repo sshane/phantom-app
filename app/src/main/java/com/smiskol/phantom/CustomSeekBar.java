@@ -44,21 +44,21 @@ public class CustomSeekBar extends AppCompatSeekBar {
         paint.setColor(Color.parseColor("#CCCCCC"));
         canvas.drawRect(rect, paint);
 
-        if (this.getProgress() > max_size/2) {
+        if (this.getProgress() > max_size / 2) {
             System.out.println(getProgress());
             System.out.println(getWidth());
             System.out.println("here");
             rect.set(getWidth() / 2,
                     (getHeight() / 2) - (seekbar_height / 2) + 1,
-                    (getWidth() / 2 + (getWidth() / max_size) * (getProgress() - max_size/2)) - (getProgress() / 10),
+                    (getWidth() / 2 + (getWidth() / max_size) * (getProgress() - max_size / 2)) - (getProgress() / 10),
                     getHeight() / 2 + (seekbar_height / 2));
 
             paint.setColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
             canvas.drawRect(rect, paint);
         }
 
-        if (this.getProgress() < max_size/2) {
-            rect.set((getWidth() / 2 - ((getWidth() / max_size) * (max_size/2 - getProgress()))) + ((Math.abs(getProgress() - max_size/2) * 2) / 10),
+        if (this.getProgress() < max_size / 2) {
+            rect.set((getWidth() / 2 - ((getWidth() / max_size) * (max_size / 2 - getProgress()))) + ((Math.abs(getProgress() - max_size / 2) * 2) / 10),
                     (getHeight() / 2) - (seekbar_height / 2) + 1,
                     getWidth() / 2,
                     getHeight() / 2 + (seekbar_height / 2));
