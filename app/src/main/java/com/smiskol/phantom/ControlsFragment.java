@@ -3,6 +3,7 @@ package com.smiskol.phantom;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -187,8 +189,13 @@ public class ControlsFragment extends Fragment {
 
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
+        TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        Typeface font = ResourcesCompat.getFont(getActivity(), R.font.product_regular);
+        tv.setTypeface(font);
         snackbar.show();
     }
+
+
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

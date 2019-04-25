@@ -2,6 +2,7 @@ package com.smiskol.phantom;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.CardView;
@@ -102,7 +104,6 @@ public class WelcomeFragment extends Fragment {
                         ipEditText.setEnabled(false);
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
-                        makeSnackbar("Testing connection...");
                         String[] params = new String[]{"true", "0.0", "0", "0", "enable"};
                         new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
                     } else {
@@ -217,6 +218,9 @@ public class WelcomeFragment extends Fragment {
     }
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
+        TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        Typeface font = ResourcesCompat.getFont(getActivity(), R.font.product_regular);
+        tv.setTypeface(font);
         snackbar.show();
     }
 }

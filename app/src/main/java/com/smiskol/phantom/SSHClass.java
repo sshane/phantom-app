@@ -64,6 +64,7 @@ public class SSHClass {
             channelssh.disconnect();
             return true;
         } catch (Exception e) {
+            System.out.println(eonIP);
             e.printStackTrace();
             return false;
         }

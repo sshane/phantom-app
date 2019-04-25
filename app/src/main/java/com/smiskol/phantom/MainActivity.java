@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -15,6 +16,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.ActionBar;
@@ -23,6 +25,7 @@ import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -67,8 +70,10 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     android.support.v7.widget.Toolbar toolbar;
     ViewPager viewPager;
     ViewPagerAdapter adapter;
+    Typeface semibold;
+    Typeface regular;
     TabLayout tabLayout;
-    String eonIP = "";
+    TextView alertTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +109,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         viewPager.setAdapter(adapter);
         tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+        alertTitle = findViewById(R.id.alertTextTemp);
+        semibold = ResourcesCompat.getFont(this, R.font.product_bold);
+        regular = ResourcesCompat.getFont(this, R.font.product_regular);
 
         getSupportActionBar().hide();
 
@@ -224,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed), String.valueOf(steeringAngle), "0", method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed*0.44704), String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
                 System.out.println("wheel update");
@@ -309,30 +317,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         writeSupportingFiles();
                         preferences.edit().putBoolean("welcome", false).apply();
-                        new AlertDialog.Builder(this).setTitle("Granted!")
-                                .setMessage("Awesome! Permission granted. I've written the EON private key to a file for us to read when we make connections to the EON later.")
-                                .setPositiveButton("Cool", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                }).show();
+                        successDialog();
                     } else {
-                        new AlertDialog.Builder(this).setTitle("Uh oh!")
-                                .setMessage("You've denied the storage permission. We need this to write the EON private key to a file so we can make connections over SSH. Please accept the permission.")
-                                .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                })
-                                .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                                    @Override
-                                    public void onDismiss(DialogInterface dialog) {
-                                        requestPermission();
-                                    }
-                                })
-                                .show();
+                        uhohDialog();
                     }
                 }
                 return;
@@ -340,22 +327,107 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         }
     }
 
-    public void welcomeDialog() {
-        new AlertDialog.Builder(this).setTitle("Welcome!")
-                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
-                .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
+    public void successDialog() {
+        if (alertTitle.getParent() != null) {
+            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
+        }
+        alertTitle.setText("Granted!");
+        alertTitle.setVisibility(View.VISIBLE);
+        alertTitle.setTypeface(semibold);
+        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+                .setMessage("You're all set now, Captain.")
+                .setPositiveButton("Rad", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
                     }
+
+                }).show();
+
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
+    }
+
+    public void warningDialog() {
+        if (alertTitle.getParent() != null) {
+            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
+        }
+        alertTitle.setText("Warning");
+        alertTitle.setVisibility(View.VISIBLE);
+        alertTitle.setTypeface(semibold);
+        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+                .setMessage("This is extremely experimental software you are about to try. You must accept all responsibility and be vigilant in controlling your car in the event of any malfunction. Proceed at your own risk.")
+                .setPositiveButton("Groovy", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        preferences.edit().putBoolean("warning", true).apply();
+                    }
+
                 }).setCancelable(false)
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                .show();
+
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
+    }
+
+    public void uhohDialog() {
+        if (alertTitle.getParent() != null) {
+            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
+        }
+        alertTitle.setText("Uh oh!");
+        alertTitle.setVisibility(View.VISIBLE);
+        alertTitle.setTypeface(semibold);
+        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+                .setMessage("You've denied the storage permission. We need this to write the EON private key to a file so we can make connections over SSH.")
+                .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         requestPermission();
                     }
-                })
+                }).setCancelable(false)
                 .show();
+
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
+    }
+
+    public void welcomeDialog() {
+        if (alertTitle.getParent() != null) {
+            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
+        }
+        alertTitle.setText("Welcome!");
+        alertTitle.setVisibility(View.VISIBLE);
+        alertTitle.setTypeface(semibold);
+        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
+                .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermission();
+                    }
+                }).setCancelable(false)
+                .show();
+
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
     }
 
     public void startListeners() {
@@ -397,6 +469,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         viewPager.setCurrentItem(1);
         tabLayout.setVisibility(View.VISIBLE);
         new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (!preferences.getBoolean("warning", false)) {
+            warningDialog();
+        }
         //connectSwitch.setChecked(true);
         //connectSwitch.setEnabled(true);
         //preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
@@ -419,9 +494,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 titleTextView.setVisibility(View.VISIBLE);
             }
         }, 100);*/
-                /*if (!preferences.getBoolean("warning", false)) {
-                    warningDialog();
-                }*/
     }
 
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
@@ -539,6 +611,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
+        TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTypeface(regular);
         snackbar.show();
     }
 

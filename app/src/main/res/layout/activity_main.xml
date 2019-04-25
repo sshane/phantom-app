@@ -30,6 +30,16 @@
         android:id="@+id/pager"></android.support.v4.view.ViewPager>
 
     <TextView
+        android:id="@+id/alertTextTemp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:paddingLeft="23dp"
+        android:paddingTop="22dp"
+        android:textColor="#000000" />
+
+    <TextView
         android:fontFamily="@font/product"
         android:visibility="gone"
         android:id="@+id/titleText"
