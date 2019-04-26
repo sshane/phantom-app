@@ -35,7 +35,6 @@ public class WelcomeFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     //private static final String ARG_PARAM1 = "param1";
     //private static final String ARG_PARAM2 = "param2";
-    SharedPreferences preferences;
     CustomSeekBar steerSeekBar;
     TextView steerTextView;
     TextView speedTextView;
@@ -86,9 +85,8 @@ public class WelcomeFragment extends Fragment {
         connectSwitch = view.findViewById(R.id.connectSwitchNew);
         ipEditTextLayout = view.findViewById(R.id.ipEditTextLayoutNew);
         ipEditText = view.findViewById(R.id.ipEditTextNew);
-        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         startListeners();
-        ipEditText.setText(preferences.getString("eonIP", ""));
+        ipEditText.setText(((MainActivity) getActivity()).preferences.getString("eonIP", ""));
         return view;
     }
 
@@ -180,7 +178,7 @@ public class WelcomeFragment extends Fragment {
         //new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
-        preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
+        ((MainActivity) getActivity()).preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
         listeningTextView.setText("Connected!");
                 /*if (!preferences.getBoolean("warning", false)) {
                     warningDialog();

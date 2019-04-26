@@ -17,10 +17,11 @@
             android:layout_alignParentBottom="true"
             android:fontFamily="@font/product"
             android:layout_width="wrap_content"
+            android:gravity="center"
             android:layout_height="wrap_content"
-            android:text="Please do not use outside of your car. Extremely experimental."
+            android:text="This app is extremely experimental.\nPlease do not use outside of your car."
             android:textSize="12sp"
-            android:layout_marginBottom="1dp"
+            android:layout_marginBottom="2dp"
             android:textColor="#FFFFFF" />
 
         <LinearLayout

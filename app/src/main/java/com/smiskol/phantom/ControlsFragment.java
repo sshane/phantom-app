@@ -2,7 +2,6 @@ package com.smiskol.phantom;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
@@ -28,7 +27,6 @@ public class ControlsFragment extends Fragment {
     ImageButton speedPlusButton;
     ImageButton speedSubButton;
     TextView speedTextView;
-    SharedPreferences preferences;
 
 
     private OnFragmentInteractionListener mListener;
@@ -57,7 +55,6 @@ public class ControlsFragment extends Fragment {
         speedSubButton = view.findViewById(R.id.speedSubButton);
         holdButton = view.findViewById(R.id.holdButton);
         speedTextView = view.findViewById(R.id.speedTextView);
-        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         setUpListeners();
         setUpHoldButton();
         return view;
@@ -75,7 +72,6 @@ public class ControlsFragment extends Fragment {
                     ((MainActivity) getActivity()).goDown = System.currentTimeMillis();
                     ((MainActivity) getActivity()).holdMessage = true;
                     ((MainActivity) getActivity()).buttonHeld = true;
-                    return true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     System.out.println("move button up");
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
@@ -103,7 +99,7 @@ public class ControlsFragment extends Fragment {
         @Override
         protected String[] doInBackground(String... params) {
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(getActivity(), preferences.getString("eonIP", ""), params[0], params[1], params[2], params[3]);
+            Boolean result = new SSHClass().sendPhantomCommand(getActivity(), ((MainActivity) getActivity()).preferences.getString("eonIP", ""), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -128,6 +124,7 @@ public class ControlsFragment extends Fragment {
         }
     }
 
+    Boolean trackingSteer = false;
 
     public void setUpListeners() {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -139,12 +136,45 @@ public class ControlsFragment extends Fragment {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                trackingSteer = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                trackingSteer = false;
+                if (seekBar.getProgress() > 100) {
+                    final Integer endProgress = (steerSeekBar.getProgress() - 100) / 2;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int l = 0; l <= endProgress; l++) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() - 2);
+                                try {
+                                    Thread.sleep(2);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            steerSeekBar.setProgress(100);
+                        }
+                    }).start();
+                } else {
+                    final Integer endProgress = (100 - steerSeekBar.getProgress()) / 2;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int l = 0; l <= endProgress; l++) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() + 2);
+                                try {
+                                    Thread.sleep(2);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            steerSeekBar.setProgress(100);
+                        }
+                    }).start();
+                }
             }
         });
         speedPlusButton.setOnClickListener(new View.OnClickListener() {
@@ -194,7 +224,6 @@ public class ControlsFragment extends Fragment {
         tv.setTypeface(font);
         snackbar.show();
     }
-
 
 
     public interface OnFragmentInteractionListener {
