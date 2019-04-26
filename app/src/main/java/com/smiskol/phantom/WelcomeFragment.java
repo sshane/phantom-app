@@ -148,7 +148,7 @@ public class WelcomeFragment extends Fragment {
         @Override
         protected String[] doInBackground(String... params) {
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(((MainActivity) getActivity()).eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -161,6 +161,7 @@ public class WelcomeFragment extends Fragment {
                     makeSnackbar("Enabled Phantom!");
                 } else if (result[1].equals("disable")) {
                     doDisable();
+                    ((MainActivity) getActivity()).sshClass.closeSession(((MainActivity) getActivity()).eonSession);
                     makeSnackbar("Disabled Phantom!");
                 } else if (result[1].equals("brake")) {
                     makeSnackbar("Stopping car!");

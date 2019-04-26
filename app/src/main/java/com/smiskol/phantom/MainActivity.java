@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     TextView alertTitle;
     Session eonSession;
     String eonIP;
+    SSHClass sshClass = new SSHClass();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -481,7 +482,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public Boolean openSession(String eonIP) {
         try {
-            eonSession = new SSHClass().getSession(MainActivity.this, eonIP);
+            eonSession = sshClass.getSession(MainActivity.this, eonIP);
             return true;
         } catch (Exception e) {
             System.out.println("HERE SADLY");
@@ -528,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = sshClass.sendPhantomCommand(eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -566,7 +567,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void doDisable() {
-        new SSHClass().closeSession(eonSession);
         viewPager.setCurrentItem(0);
         adapter.setViewCount(1);
         tabLayout.setVisibility(View.GONE);
