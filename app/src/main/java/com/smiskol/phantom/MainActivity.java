@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             previousSteer = steeringAngle;
             System.out.println("started phantom thread");
             while (true) {
-                System.out.println("running processes: " + runningProcesses);
+                System.out.println(runningProcesses);
                 try {
                     Thread.sleep(100);
                 } catch (Exception e) {
@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), "0", method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed*0.44704), String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
                 System.out.println("wheel update");

@@ -158,7 +158,7 @@ public class ControlsFragment extends Fragment {
                             steerSeekBar.setProgress(100);
                         }
                     }).start();
-                } else {
+                } else if (seekBar.getProgress() < 100) {
                     final Integer endProgress = (100 - steerSeekBar.getProgress()) / 2;
                     new Thread(new Runnable() {
                         @Override
