@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:textSize="26sp"
-                android:text="TORQUE: 0" />
+                android:text="0°" />
 
         </LinearLayout>
 

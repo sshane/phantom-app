@@ -184,8 +184,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean runPhantomThread = true;
     Integer runningProcesses = 0;
     Integer maxProcesses = 1;
-    Long previousSteer = Long.valueOf(0);
-    Long steeringAngle = Long.valueOf(0);
+    Double previousSteer = 0.0;
+    Double steeringAngle = 0.0;
     Double desiredSpeed = 5.0;
     Boolean trackingSteer = false;
     Boolean steerLetGo = false;
@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             while (true) {
                 System.out.println(runningProcesses);
                 try {
-                    Thread.sleep(250);
+                    Thread.sleep(100);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     while (true) {
                         System.out.println("waiting for excess processes to finish");
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(250);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

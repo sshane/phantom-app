@@ -78,7 +78,7 @@
 
                 <EditText
                     android:digits="1234567890."
-                    android:inputType="textFilter"
+                    android:inputType="textFilter|textNoSuggestions"
                     android:id="@+id/ipEditTextNew"
                     android:textColor="#FFFFFF"
                     android:layout_height="wrap_content"
@@ -106,7 +106,7 @@
 
                 <TextView
                     android:fontFamily="@font/product"
-                    android:textSize="20dp"
+                    android:textSize="20sp"
                     android:id="@+id/connectedTextNew"
                     android:layout_width="wrap_content"
                     android:text="Not Connected"

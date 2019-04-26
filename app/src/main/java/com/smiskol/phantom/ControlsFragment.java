@@ -36,11 +36,6 @@ public class ControlsFragment extends Fragment {
     }
 
 
-    public static ControlsFragment newInstance(String param1, String param2) {
-        ControlsFragment fragment = new ControlsFragment();
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,9 +125,8 @@ public class ControlsFragment extends Fragment {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                //steerTextView.setText(-(progress - 100) + "°");
-                steerTextView.setText("TORQUE: " + Math.round(((progress - 100) / 100.0) * 1500.0));
-                ((MainActivity) getActivity()).steeringAngle = -Math.round(((progress - 100) / 100.0) * 1500.0);
+                steerTextView.setText(-(progress - 100) + "°");
+                ((MainActivity) getActivity()).steeringAngle = -((progress - 100)*1.2);
             }
 
             @Override
