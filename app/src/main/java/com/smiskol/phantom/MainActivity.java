@@ -39,6 +39,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
+import com.jcraft.jsch.Session;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -74,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Typeface regular;
     TabLayout tabLayout;
     TextView alertTitle;
+    Session eonSession;
+    String eonIP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +120,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         getSupportActionBar().hide();
 
         doWelcome();
-        startListeners();
-        setUpMainCard();
-        setUpHoldButton();
+        //startListeners();
+        //setUpMainCard();
+        //setUpHoldButton();
         connectSwitch.setChecked(false);
 
         /*steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -178,10 +182,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean buttonHeld = false;
     Boolean runPhantomThread = true;
     Integer runningProcesses = 0;
-    Integer maxProcesses = 2;
-    Integer previousSteer = 0;
-    Integer steeringAngle = 0;
+    Integer maxProcesses = 1;
+    Long previousSteer = Long.valueOf(0);
+    Long steeringAngle = Long.valueOf(0);
     Double desiredSpeed = 5.0;
+    Boolean trackingSteer = false;
+    Boolean steerLetGo = false;
 
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
@@ -192,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             while (true) {
                 System.out.println(runningProcesses);
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(250);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -201,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     while (true) {
                         System.out.println("waiting for excess processes to finish");
                         try {
-                            Thread.sleep(250);
+                            Thread.sleep(500);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -212,15 +218,24 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
 
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
-                    if (!previousSteer.equals(steeringAngle)) {
+                    if (!previousSteer.equals(steeringAngle) && trackingSteer) {
                         previousSteer = steeringAngle;
                         publishProgress("move_with_wheel");
-                    } else if ((System.currentTimeMillis() - goDown) > 200 && holdMessage) {
+                    } else if (steerLetGo) {
+                        previousSteer = steeringAngle;
+                        steerLetGo = false;
+                        publishProgress("move_with_wheel");
+
+                    } else if (holdMessage) {
                         holdMessage = false;
                         publishProgress("move");
                     }
-                } else if (!buttonHeld && !previousSteer.equals(steeringAngle)) {
+                } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
                     previousSteer = steeringAngle;
+                    publishProgress("wheel");
+                } else if (!buttonHeld && steerLetGo) {
+                    previousSteer = steeringAngle;
+                    steerLetGo = false;
                     publishProgress("wheel");
                 }
                 if (!runPhantomThread) {
@@ -232,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed*0.44704), String.valueOf(steeringAngle), "0", method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
                 System.out.println("wheel update");
@@ -464,6 +479,17 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         });
     }
 
+    public Boolean openSession(String eonIP) {
+        try {
+            eonSession = new SSHClass().getSession(MainActivity.this, eonIP);
+            return true;
+        } catch (Exception e) {
+            System.out.println("HERE SADLY");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void doSuccessful() {
         adapter.setViewCount(2);
         viewPager.setCurrentItem(1);
@@ -472,6 +498,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         if (!preferences.getBoolean("warning", false)) {
             warningDialog();
         }
+
         //connectSwitch.setChecked(true);
         //connectSwitch.setEnabled(true);
         //preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
@@ -501,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(MainActivity.this, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = new SSHClass().sendPhantomCommand(eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -539,6 +566,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void doDisable() {
+        new SSHClass().closeSession(eonSession);
         viewPager.setCurrentItem(0);
         adapter.setViewCount(1);
         tabLayout.setVisibility(View.GONE);

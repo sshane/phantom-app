@@ -99,7 +99,7 @@ public class ControlsFragment extends Fragment {
         @Override
         protected String[] doInBackground(String... params) {
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(getActivity(), ((MainActivity) getActivity()).preferences.getString("eonIP", ""), params[0], params[1], params[2], params[3]);
+            Boolean result = new SSHClass().sendPhantomCommand(((MainActivity) getActivity()).eonSession, ((MainActivity) getActivity()).eonIP, params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -124,24 +124,24 @@ public class ControlsFragment extends Fragment {
         }
     }
 
-    Boolean trackingSteer = false;
 
     public void setUpListeners() {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(-(progress - 100) + "°");
-                ((MainActivity) getActivity()).steeringAngle = -(progress - 100);
+                //steerTextView.setText(-(progress - 100) + "°");
+                steerTextView.setText("TORQUE: " + Math.round(((progress - 100) / 100.0) * 1500.0));
+                ((MainActivity) getActivity()).steeringAngle = -Math.round(((progress - 100) / 100.0) * 1500.0);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                trackingSteer = true;
+                ((MainActivity) getActivity()).trackingSteer = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                trackingSteer = false;
+                ((MainActivity) getActivity()).trackingSteer = false;
                 if (seekBar.getProgress() > 100) {
                     final Integer endProgress = (steerSeekBar.getProgress() - 100) / 2;
                     new Thread(new Runnable() {
@@ -156,6 +156,7 @@ public class ControlsFragment extends Fragment {
                                 }
                             }
                             steerSeekBar.setProgress(100);
+                            ((MainActivity) getActivity()).steerLetGo = true;
                         }
                     }).start();
                 } else if (seekBar.getProgress() < 100) {
@@ -172,6 +173,7 @@ public class ControlsFragment extends Fragment {
                                 }
                             }
                             steerSeekBar.setProgress(100);
+                            ((MainActivity) getActivity()).steerLetGo = true;
                         }
                     }).start();
                 }

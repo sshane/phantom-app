@@ -102,8 +102,7 @@ public class WelcomeFragment extends Fragment {
                         ipEditText.setEnabled(false);
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
-                        String[] params = new String[]{"true", "0.0", "0", "0", "enable"};
-                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
+                        new openSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
                         connectSwitch.setChecked(false);
                         makeSnackbar("Please enter an IP!");
@@ -123,12 +122,33 @@ public class WelcomeFragment extends Fragment {
         });
     }
 
+    public class openSession extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            return ((MainActivity) getActivity()).openSession(ipEditText.getText().toString());
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                String[] params = new String[]{"true", "0.0", "0", "0", "enable"};
+                new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
+                //doSuccessful();
+            } else {
+                doDisable();
+                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
+
+            }
+        }
+    }
+
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
 
         @Override
         protected String[] doInBackground(String... params) {
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = new SSHClass().sendPhantomCommand(getActivity(), ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = new SSHClass().sendPhantomCommand(((MainActivity) getActivity()).eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -178,6 +198,7 @@ public class WelcomeFragment extends Fragment {
         //new PhantomThread().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
+        ((MainActivity) getActivity()).eonIP = ipEditText.getText().toString();
         ((MainActivity) getActivity()).preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
         listeningTextView.setText("Connected!");
                 /*if (!preferences.getBoolean("warning", false)) {

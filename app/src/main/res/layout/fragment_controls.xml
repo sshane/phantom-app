@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:textSize="26sp"
-                android:text="0°" />
+                android:text="TORQUE: 0" />
 
         </LinearLayout>
 
@@ -89,7 +89,7 @@
                 android:textSize="16sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Acceleration Control" />
+                android:text="Speed Control" />
 
             <LinearLayout
                 android:id="@+id/speedButtons"
