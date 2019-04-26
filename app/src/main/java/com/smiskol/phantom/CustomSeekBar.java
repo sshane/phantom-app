@@ -45,9 +45,6 @@ public class CustomSeekBar extends AppCompatSeekBar {
         canvas.drawRect(rect, paint);
 
         if (this.getProgress() > max_size / 2) {
-            System.out.println(getProgress());
-            System.out.println(getWidth());
-            System.out.println("here");
             rect.set(getWidth() / 2,
                     (getHeight() / 2) - (seekbar_height / 2) + 1,
                     (getWidth() / 2 + (getWidth() / max_size) * (getProgress() - max_size / 2)) + ((getProgress() / 5)),

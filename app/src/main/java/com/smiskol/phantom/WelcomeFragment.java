@@ -63,7 +63,7 @@ public class WelcomeFragment extends Fragment {
     public WelcomeFragment() {
         // Required empty public constructor
     }
-    
+
     public static WelcomeFragment newInstance(String param1, String param2) {
         WelcomeFragment fragment = new WelcomeFragment();
         //Bundle args = new Bundle();
@@ -214,6 +214,7 @@ public class WelcomeFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
         TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
