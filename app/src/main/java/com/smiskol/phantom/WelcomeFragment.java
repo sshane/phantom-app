@@ -161,7 +161,7 @@ public class WelcomeFragment extends Fragment {
                     makeSnackbar("Enabled Phantom!");
                 } else if (result[1].equals("disable")) {
                     doDisable();
-                    ((MainActivity) getActivity()).sshClass.closeSession(((MainActivity) getActivity()).eonSession);
+                    //((MainActivity) getActivity()).sshClass.closeSession(((MainActivity) getActivity()).eonSession);
                     makeSnackbar("Disabled Phantom!");
                 } else if (result[1].equals("brake")) {
                     makeSnackbar("Stopping car!");
