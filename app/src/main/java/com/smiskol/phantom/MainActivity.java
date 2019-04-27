@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     SSHClass sshClass = new SSHClass();
     Long goDown = Long.valueOf(0);
     Long goDuration = Long.valueOf(0);
-    Boolean holdMessage = false;
+    //Boolean holdMessage = false;
     Boolean buttonHeld = false;
     Boolean runPhantomThread = true;
     Integer runningProcesses = 0;
@@ -178,8 +178,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         steerLetGo = false;
                         publishProgress("move_with_wheel");
 
-                    } else if (holdMessage) {
-                        holdMessage = false;
+                    } else {
+                        //holdMessage = false;
                         publishProgress("move");
                     }
                 } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
@@ -199,10 +199,10 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), "0", method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
-                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), "0", method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }

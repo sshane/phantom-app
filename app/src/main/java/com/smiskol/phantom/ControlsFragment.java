@@ -63,13 +63,13 @@ public class ControlsFragment extends Fragment {
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.startTransition(175);
                     ((MainActivity) getActivity()).goDown = System.currentTimeMillis();
-                    ((MainActivity) getActivity()).holdMessage = true;
+                    //((MainActivity) getActivity()).holdMessage = true;
                     ((MainActivity) getActivity()).buttonHeld = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     System.out.println("move button up");
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.reverseTransition(175);
-                    ((MainActivity) getActivity()).holdMessage = false;
+                    //((MainActivity) getActivity()).holdMessage = false;
                     ((MainActivity) getActivity()).buttonHeld = false;
                     ((MainActivity) getActivity()).goDuration = System.currentTimeMillis() - ((MainActivity) getActivity()).goDown;
                     if (((MainActivity) getActivity()).goDuration < 200) {
@@ -77,7 +77,7 @@ public class ControlsFragment extends Fragment {
                             makeSnackbar("You must hold button down for acceleration!");
                         }
                     } else {
-                        String[] params = new String[]{"true", "0.0", String.valueOf(((MainActivity) getActivity()).steeringAngle), "0", "brake"};
+                        String[] params = new String[]{"true", "0.0", String.valueOf(((MainActivity) getActivity()).steeringAngle), String.valueOf(System.currentTimeMillis()), "brake"};
                         new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
                     }
                     System.out.println("Button held for " + ((MainActivity) getActivity()).goDuration + " ms");
