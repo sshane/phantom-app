@@ -31,7 +31,6 @@
 
     <TextView
         android:id="@+id/alertTextTitle"
-        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="22sp"
@@ -279,20 +278,6 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <ImageButton
-                android:onClick="speedButtonSubClick"
-                android:id="@+id/speedSubButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_button_sub" />
-
-            <ImageButton
-                android:layout_marginStart="80dp"
-                android:onClick="speedButtonPlusClick"
-                android:id="@+id/speedPlusButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_button_plus" />
 
         </LinearLayout>
 

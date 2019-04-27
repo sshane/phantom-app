@@ -133,10 +133,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         doWelcome();
         connectSwitch.setChecked(false);
 
-
         new CheckUpdate().execute();
-
-
     }
 
     private class CheckUpdate extends AsyncTask<Void, String, String> {
@@ -184,15 +181,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         @Override
         protected void onPostExecute(String result) {
-            super.onPostExecute(result);
             try {
                 String latestCommitSHA = new JSONArray(result).getJSONObject(1).getString("sha");
                 //String latestCommitSHA = new JSONObject(result).getJSONObject("object").getString("sha");
                 if (getString(R.string.current_commit).equals(latestCommitSHA)) {
                     makeSnackbar("You're on the latest commit!");
-                    preferences.edit().putBoolean("isOutOfDate", false).apply();
                 } else {
-                    preferences.edit().putBoolean("isOutOfDate", true).apply();
                     outOfDate();
                 }
             } catch (Exception e) {
@@ -373,14 +367,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void outOfDate() {
-
-        if (alertTitle.getParent() != null) {
-            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
-        }
-        alertTitle.setText("Out of date!");
-        alertTitle.setVisibility(View.VISIBLE);
-        alertTitle.setTypeface(semibold);
-        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Out of date!")
                 .setMessage("You're on an old version of Phantom. Updating is highly recommended.")
                 .setPositiveButton("Update", new DialogInterface.OnClickListener() {
                     @Override
@@ -392,6 +379,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }).setCancelable(false)
                 .show();
 
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
         TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
@@ -399,13 +388,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void successDialog() {
-        if (alertTitle.getParent() != null) {
-            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
-        }
-        alertTitle.setText("Granted!");
-        alertTitle.setVisibility(View.VISIBLE);
-        alertTitle.setTypeface(semibold);
-        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Granted!")
                 .setMessage("You're all set now, Captain.")
                 .setPositiveButton("Rad", new DialogInterface.OnClickListener() {
                     @Override
@@ -414,7 +397,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     }
 
                 }).show();
-
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
         TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
@@ -422,13 +406,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void warningDialog() {
-        if (alertTitle.getParent() != null) {
-            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
-        }
-        alertTitle.setText("Warning");
-        alertTitle.setVisibility(View.VISIBLE);
-        alertTitle.setTypeface(semibold);
-        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Warning")
                 .setMessage("This is extremely experimental software you are about to try. You must accept all responsibility and be vigilant in controlling your car in the event of any malfunction. Proceed at your own risk.")
                 .setPositiveButton("Groovy", new DialogInterface.OnClickListener() {
                     @Override
@@ -439,6 +417,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }).setCancelable(false)
                 .show();
 
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
         TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
@@ -446,13 +426,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void uhohDialog() {
-        if (alertTitle.getParent() != null) {
-            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
-        }
-        alertTitle.setText("Uh oh!");
-        alertTitle.setVisibility(View.VISIBLE);
-        alertTitle.setTypeface(semibold);
-        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Uh oh!")
                 .setMessage("You've denied the storage permission. We need this to write the EON private key to a file so we can make connections over SSH.")
                 .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
                     @Override
@@ -467,6 +441,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }).setCancelable(false)
                 .show();
 
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
         TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
@@ -474,14 +450,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public void welcomeDialog() {
-        if (alertTitle.getParent() != null) {
-            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
-        }
-        alertTitle.setText("Welcome!");
-        alertTitle.setVisibility(View.VISIBLE);
-        alertTitle.setTypeface(semibold);
-        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
-                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and turning angle via SSH. We will now request the data permission, required to access your EON.")
+        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Welcome!")
+                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and wheel angle via SSH. We will now request the data permission, required to access your EON.")
                 .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -495,6 +465,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }).setCancelable(false)
                 .show();
 
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
         TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
