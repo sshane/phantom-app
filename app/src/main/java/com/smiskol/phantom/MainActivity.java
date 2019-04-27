@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             BufferedReader reader = null;
 
             try {
-                URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/git/refs/heads/master");
+                URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
@@ -186,7 +186,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             try {
-                String latestCommitSHA = new JSONObject(result).getJSONObject("object").getString("sha");
+                String latestCommitSHA = new JSONArray(result).getJSONObject(1).getString("sha");
+                //String latestCommitSHA = new JSONObject(result).getJSONObject("object").getString("sha");
                 if (getString(R.string.current_commit).equals(latestCommitSHA)) {
                     makeSnackbar("You're on the latest commit!");
                     preferences.edit().putBoolean("isOutOfDate", false).apply();
