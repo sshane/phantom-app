@@ -82,9 +82,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         regular = ResourcesCompat.getFont(this, R.font.product_regular);
 
         getSupportActionBar().hide();
-
         doWelcome();
-
         new CheckUpdate().execute();
     }
 
