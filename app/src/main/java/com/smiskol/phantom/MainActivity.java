@@ -183,7 +183,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         protected void onPostExecute(String result) {
             try {
                 String latestCommitSHA = new JSONArray(result).getJSONObject(1).getString("sha");
-                //String latestCommitSHA = new JSONObject(result).getJSONObject("object").getString("sha");
                 if (getString(R.string.current_commit).equals(latestCommitSHA)) {
                     makeSnackbar("You're on the latest commit!");
                 } else {
