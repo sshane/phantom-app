@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -41,10 +42,19 @@ import android.widget.Toolbar;
 
 import com.jcraft.jsch.Session;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
@@ -114,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         viewPager.setAdapter(adapter);
         tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        alertTitle = findViewById(R.id.alertTextTemp);
+        alertTitle = findViewById(R.id.alertTextTitle);
         semibold = ResourcesCompat.getFont(this, R.font.product_bold);
         regular = ResourcesCompat.getFont(this, R.font.product_regular);
 
@@ -124,6 +134,71 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         connectSwitch.setChecked(false);
 
 
+        new CheckUpdate().execute();
+
+
+    }
+
+    private class CheckUpdate extends AsyncTask<Void, String, String> {
+        protected String doInBackground(Void... params) {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+
+            try {
+                URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/git/refs/heads/master");
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+
+                InputStream stream = connection.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                StringBuffer buffer = new StringBuffer();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line + "\n");
+
+                }
+
+                return buffer.toString();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            try {
+                String latestCommitSHA = new JSONObject(result).getJSONObject("object").getString("sha");
+                if (getString(R.string.current_commit).equals(latestCommitSHA)) {
+                    makeSnackbar("You're on the latest commit!");
+                    preferences.edit().putBoolean("isOutOfDate", false).apply();
+                } else {
+                    preferences.edit().putBoolean("isOutOfDate", true).apply();
+                    outOfDate();
+                }
+            } catch (Exception e) {
+                makeSnackbar("Unable to check for updates!");
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -294,6 +369,32 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 return;
             }
         }
+    }
+
+    public void outOfDate() {
+
+        if (alertTitle.getParent() != null) {
+            ((ViewGroup) alertTitle.getParent()).removeView(alertTitle);
+        }
+        alertTitle.setText("Out of date!");
+        alertTitle.setVisibility(View.VISIBLE);
+        alertTitle.setTypeface(semibold);
+        AlertDialog successDialog = new AlertDialog.Builder(this).setCustomTitle(alertTitle)
+                .setMessage("You're on an old version of Phantom. Updating is highly recommended.")
+                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ShaneSmiskol/phantom-app/blob/master/README.md"));
+                        startActivity(browserIntent);
+                    }
+
+                }).setCancelable(false)
+                .show();
+
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
     }
 
     public void successDialog() {
@@ -518,7 +619,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             }
         }
     }
-
 
 
     public void doDisable() {
