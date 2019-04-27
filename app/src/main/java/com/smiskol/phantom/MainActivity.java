@@ -121,60 +121,14 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         getSupportActionBar().hide();
 
         doWelcome();
-        //startListeners();
-        //setUpMainCard();
-        //setUpHoldButton();
         connectSwitch.setChecked(false);
 
-        /*steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(-(progress - 100) + "°");
-                steeringAngle = -(progress - 100);
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });*/
-        accelSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                speedTextView.setText(progress / 10.0 + " mph");
-                desiredSpeed = (progress / 10.0) * 0.44704; //convert to m/s
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
     }
 
     @Override
     public void onFragmentInteraction(Uri uri) {
         //you can leave it empty
-    }
-
-    public void speedButtonPlusClick(View view) {
-        desiredSpeed = Math.min(desiredSpeed + 0.5, 10);
-        speedTextView.setText(String.valueOf(desiredSpeed) + " mph");
-    }
-
-    public void speedButtonSubClick(View view) {
-        desiredSpeed = Math.max(desiredSpeed - 0.5, 2);
-        speedTextView.setText(String.valueOf(desiredSpeed) + " mph");
     }
 
     Long goDown = Long.valueOf(0);
@@ -199,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             while (true) {
                 System.out.println(runningProcesses);
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(250);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -251,7 +205,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
-                System.out.println("wheel update");
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), "0", method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
@@ -565,6 +518,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             }
         }
     }
+
+
 
     public void doDisable() {
         viewPager.setCurrentItem(0);

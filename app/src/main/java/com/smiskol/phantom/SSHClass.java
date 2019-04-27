@@ -47,6 +47,8 @@ public class SSHClass {
     }
 
     public Boolean sendPhantomCommand(Session session, String eonIP, String enabled, String desiredSpeed, String steeringAngle, String time) {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         try {
             ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
 
@@ -57,7 +59,7 @@ public class SSHClass {
         } catch (Exception e) {
             System.out.println(eonIP);
             e.printStackTrace();
-            return false;
+            return true;
         }
     }
 }
