@@ -36,7 +36,7 @@ public class CustomSeekBar extends AppCompatSeekBar {
 
     @Override
     protected synchronized void onDraw(Canvas canvas) {
-        rect.set(0 + getThumbOffset() + 5,
+        rect.set(getThumbOffset() + 5,
                 (getHeight() / 2) - (seekbar_height / 2) + 1,
                 getWidth() - getThumbOffset() - 5,
                 (getHeight() / 2) + (seekbar_height / 2));

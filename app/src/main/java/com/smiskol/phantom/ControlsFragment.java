@@ -7,7 +7,6 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
@@ -27,7 +26,6 @@ public class ControlsFragment extends Fragment {
     ImageButton speedPlusButton;
     ImageButton speedSubButton;
     TextView speedTextView;
-
 
     private OnFragmentInteractionListener mListener;
 
@@ -126,7 +124,7 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 steerTextView.setText(-(progress - 100) + "°");
-                ((MainActivity) getActivity()).steeringAngle = -((progress - 100)*1.2);
+                ((MainActivity) getActivity()).steeringAngle = -((progress - 100) * 1.2);
             }
 
             @Override
@@ -190,13 +188,6 @@ public class ControlsFragment extends Fragment {
         });
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -216,7 +207,7 @@ public class ControlsFragment extends Fragment {
 
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(getActivity().findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
-        TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        TextView tv = (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
         Typeface font = ResourcesCompat.getFont(getActivity(), R.font.product_regular);
         tv.setTypeface(font);
         snackbar.show();
@@ -224,7 +215,6 @@ public class ControlsFragment extends Fragment {
 
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }

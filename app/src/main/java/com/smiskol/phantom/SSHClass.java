@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.StrictMode;
 
 import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 

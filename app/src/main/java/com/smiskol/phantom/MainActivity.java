@@ -1,17 +1,14 @@
 package com.smiskol.phantom;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
-import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -19,31 +16,21 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import com.jcraft.jsch.Session;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,69 +40,36 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
-    CustomSeekBar steerSeekBar;
-    TextView steerTextView;
-    TextView speedTextView;
-    SeekBar accelSeekBar;
-    TextView listeningTextView;
-    Switch connectSwitch;
-    EditText ipEditText;
-    TextView titleTextView;
-    TextInputLayout ipEditTextLayout;
-    CardView steerCard;
-    CardView cardViewMain;
-    CardView accelCard;
-    LinearLayout welcomeLayoutTitle;
-    LinearLayout welcomeLayout;
-    LinearLayout connectLayout;
-    LinearLayout steerLayout;
-    LinearLayout accelLayout;
-    Button goButton;
-    LinearLayout holdButton;
-    ImageButton speedPlusButton;
-    ImageButton speedSubButton;
     android.support.v7.widget.Toolbar toolbar;
     ViewPager viewPager;
     ViewPagerAdapter adapter;
     Typeface semibold;
     Typeface regular;
     TabLayout tabLayout;
-    TextView alertTitle;
     Session eonSession;
     String eonIP;
     SSHClass sshClass = new SSHClass();
+    Long goDown = Long.valueOf(0);
+    Long goDuration = Long.valueOf(0);
+    Boolean holdMessage = false;
+    Boolean buttonHeld = false;
+    Boolean runPhantomThread = true;
+    Integer runningProcesses = 0;
+    Integer maxProcesses = 1;
+    Double previousSteer = 0.0;
+    Double steeringAngle = 0.0;
+    Double desiredSpeed = 5.0;
+    Boolean trackingSteer = false;
+    Boolean steerLetGo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        steerSeekBar = findViewById(R.id.steerSeekBarNew);
-        steerTextView = findViewById(R.id.steerTextViewNew);
-        speedTextView = findViewById(R.id.speedTextView);
-        accelSeekBar = findViewById(R.id.accelSeekBar);
-        listeningTextView = findViewById(R.id.connectedTextNew);
-        connectSwitch = findViewById(R.id.connectSwitchNew);
-        ipEditTextLayout = findViewById(R.id.ipEditTextLayoutNew);
-        ipEditText = findViewById(R.id.ipEditTextNew);
-        steerCard = findViewById(R.id.steerCard);
-        accelCard = findViewById(R.id.accelCard);
-        steerLayout = findViewById(R.id.steerLayout);
-        accelLayout = findViewById(R.id.accelLayout);
-        titleTextView = findViewById(R.id.titleText);
-        cardViewMain = findViewById(R.id.cardViewMain);
-        welcomeLayout = findViewById(R.id.welcomeLayout);
-        welcomeLayoutTitle = findViewById(R.id.welcomeLayoutTitle);
-        connectLayout = findViewById(R.id.connectLayout);
-        goButton = findViewById(R.id.goButton);
-        speedPlusButton = findViewById(R.id.speedPlusButton);
-        speedSubButton = findViewById(R.id.speedSubButton);
-        holdButton = findViewById(R.id.holdButton);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         toolbar = findViewById(R.id.toolBar);
         setSupportActionBar(toolbar);
@@ -124,14 +78,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         viewPager.setAdapter(adapter);
         tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        alertTitle = findViewById(R.id.alertTextTitle);
         semibold = ResourcesCompat.getFont(this, R.font.product_bold);
         regular = ResourcesCompat.getFont(this, R.font.product_regular);
 
         getSupportActionBar().hide();
 
         doWelcome();
-        connectSwitch.setChecked(false);
 
         new CheckUpdate().execute();
     }
@@ -140,27 +92,18 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         protected String doInBackground(Void... params) {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
-
             try {
                 URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
-
-
                 InputStream stream = connection.getInputStream();
-
                 reader = new BufferedReader(new InputStreamReader(stream));
-
                 StringBuffer buffer = new StringBuffer();
                 String line;
-
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line + "\n");
-
                 }
-
                 return buffer.toString();
-
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -181,6 +124,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         @Override
         protected void onPostExecute(String result) {
+            if (result == null) {
+                makeSnackbar("Unable to check for updates!");
+            }
             try {
                 String latestCommitSHA = new JSONArray(result).getJSONObject(1).getString("sha");
                 if (getString(R.string.current_commit).equals(latestCommitSHA)) {
@@ -200,19 +146,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         //you can leave it empty
     }
 
-    Long goDown = Long.valueOf(0);
-    Long goDuration = Long.valueOf(0);
-    Boolean holdMessage = false;
-    Boolean buttonHeld = false;
-    Boolean runPhantomThread = true;
-    Integer runningProcesses = 0;
-    Integer maxProcesses = 1;
-    Double previousSteer = 0.0;
-    Double steeringAngle = 0.0;
-    Double desiredSpeed = 5.0;
-    Boolean trackingSteer = false;
-    Boolean steerLetGo = false;
-
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
         protected Boolean doInBackground(Void... v) {
@@ -228,15 +161,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
 
                 if (runningProcesses > maxProcesses) {
-                    while (true) {
+                    while (runningProcesses > maxProcesses) {
                         System.out.println("waiting for excess processes to finish");
                         try {
                             Thread.sleep(250);
                         } catch (Exception e) {
                             e.printStackTrace();
-                        }
-                        if (runningProcesses <= maxProcesses) {
-                            break;
                         }
                     }
                 }
@@ -289,52 +219,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    public void setUpHoldButton() {
-        holdButton.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    System.out.println("move button down");
-                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
-                    transition.startTransition(175);
-                    goDown = System.currentTimeMillis();
-                    holdMessage = true;
-                    buttonHeld = true;
-                } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    System.out.println("move button up");
-                    TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
-                    transition.reverseTransition(175);
-                    holdMessage = false;
-                    buttonHeld = false;
-                    goDuration = System.currentTimeMillis() - goDown;
-                    if (goDuration < 200) {
-                        makeSnackbar("You must hold button down for acceleration!");
-                    } else {
-                        String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), "0", "brake"};
-                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-                    }
-                    System.out.println("Button held for " + goDuration + " ms");
-                }
-                return false;
-            }
-        });
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    public void setUpMainCard() {
-        ipEditText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                ipEditText.setFocusable(true);
-                ipEditText.setFocusableInTouchMode(true);
-
-                return false;
-            }
-        });
-        ipEditText.setText(preferences.getString("eonIP", ""));
-    }
-
     public void doWelcome() {
         if (preferences.getBoolean("welcome", true)) {
             welcomeDialog();
@@ -360,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         uhohDialog();
                     }
                 }
-                return;
             }
         }
     }
@@ -472,40 +355,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         tmpButton.setTypeface(semibold);
     }
 
-    public void startListeners() {
-        connectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (!buttonView.isPressed()) {
-                    return;
-                }
-                if (isChecked) {
-                    if (!ipEditText.getText().toString().equals("") && ipEditText.getText().toString().length() >= 7) {
-                        ipEditText.setEnabled(false);
-                        connectSwitch.setEnabled(false);
-                        listeningTextView.setText("Testing connection...");
-                        makeSnackbar("Testing connection...");
-                        String[] params = new String[]{"true", "0.0", "0", "0", "enable"};
-                        new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
-                    } else {
-                        connectSwitch.setChecked(false);
-                        makeSnackbar("Please enter an IP!");
-                        Animation mShakeAnimation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.shake);
-                        ipEditTextLayout.startAnimation(mShakeAnimation);
-                    }
-
-
-                } else {
-                    connectSwitch.setEnabled(false);
-                    connectSwitch.setChecked(true);
-                    String[] params = new String[]{"false", "0.0", "0", "0", "disable"};
-                    new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
-                    listeningTextView.setText("Disabling...");
-                }
-            }
-        });
-    }
-
     public Boolean openSession(String eonIP) {
         try {
             eonSession = sshClass.getSession(MainActivity.this, eonIP);
@@ -525,29 +374,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         if (!preferences.getBoolean("warning", false)) {
             warningDialog();
         }
-
-        //connectSwitch.setChecked(true);
-        //connectSwitch.setEnabled(true);
-        //preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
-        //makeSnackbar("Connected!");
-        //listeningTextView.setText("Connected!");
-        //ipEditTextLayout.setVisibility(View.GONE);
-        //cardViewMain.animate().translationY(700).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
-        /*final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //steerCard.setVisibility(View.VISIBLE);
-                steerLayout.setVisibility(View.VISIBLE);
-                //accelCard.setVisibility(View.VISIBLE);
-                welcomeLayoutTitle.setVisibility(View.GONE);
-                welcomeLayout.setVisibility(View.GONE);
-                connectLayout.setVisibility(View.GONE);
-                holdButton.setVisibility(View.VISIBLE);
-                accelLayout.setVisibility(View.VISIBLE);
-                titleTextView.setVisibility(View.VISIBLE);
-            }
-        }, 100);*/
     }
 
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
@@ -555,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = sshClass.sendPhantomCommand(eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = sshClass.sendPhantomCommand(eonSession, eonIP, params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
@@ -582,7 +408,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
             } else {
                 if (result[1].equals("disable")) {
-                    connectSwitch.setEnabled(true);
                     makeSnackbar("Error disabling Phantom mode!");
                 } else {
                     doDisable();
@@ -598,21 +423,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         adapter.setViewCount(1);
         tabLayout.setVisibility(View.GONE);
         runPhantomThread = false;
-        //connectSwitch.setChecked(false);
-        //connectSwitch.setEnabled(true);
-        //listeningTextView.setText("Not Connected");
-        //steerCard.setVisibility(View.GONE);
-        //steerLayout.setVisibility(View.GONE);
-        //accelCard.setVisibility(View.GONE);
-        //welcomeLayoutTitle.setVisibility(View.VISIBLE);
-        //welcomeLayout.setVisibility(View.VISIBLE);
-        //connectLayout.setVisibility(View.VISIBLE);
-        //holdButton.setVisibility(View.GONE);
-        //accelLayout.setVisibility(View.GONE);
-        //titleTextView.setVisibility(View.GONE);
-        //ipEditTextLayout.setVisibility(View.VISIBLE);
-        //cardViewMain.animate().translationY(0).setDuration(500).setInterpolator(new FastOutSlowInInterpolator()).start();
-        //ipEditText.setEnabled(true);
     }
 
     public void writeSupportingFiles() {
@@ -666,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public void makeSnackbar(String s) {
         Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), s, Snackbar.LENGTH_SHORT);
-        TextView tv = (TextView) (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
+        TextView tv = (snackbar.getView()).findViewById(android.support.design.R.id.snackbar_text);
         tv.setTypeface(regular);
         snackbar.show();
     }
