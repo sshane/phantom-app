@@ -133,7 +133,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     for (int commit = 0; commit < commits.length(); commit++) {
                         commitsSince.add(commits.getJSONObject(commit).getString("sha"));
                     }
-
                     new CheckUpdate().execute(commitsSince);
                 } catch (Exception e) {
                     makeSnackbar("Unable to check for updates!");
