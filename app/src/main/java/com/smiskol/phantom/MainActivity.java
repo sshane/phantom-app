@@ -132,10 +132,13 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     ArrayList<String> commitsSince = new ArrayList<>();
                     for (int commit = 0; commit < commits.length(); commit++) {
                         if (!commits.getJSONObject(commit).getString("sha").equals(getString(R.string.current_commit))) {
-                            if (commit > 0) {
+
                                 commitsSince.add(commits.getJSONObject(commit).getString("sha"));
-                            }
+
                         } else {
+                            if (commitsSince.size() > 1) {
+                                commitsSince.remove(commitsSince.size() - 1);
+                            }
                             break;
                         }
                     }
@@ -155,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             for (int commit = 0; commit < commitsSince.size(); commit++) {
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
+                System.out.println("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                 try {
                     URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                     connection = (HttpURLConnection) url.openConnection();
@@ -419,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             eonSession = sshClass.getSession(MainActivity.this, eonIP);
             return true;
         } catch (Exception e) {
+            System.out.println("HERE SADLY");
             e.printStackTrace();
             return false;
         }
