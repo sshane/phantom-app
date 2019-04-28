@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     e.printStackTrace();
                 }
             }
-
         }
     }
 
@@ -246,6 +245,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         publishProgress("move_with_wheel");
                     } else if (holdMessage) {
                         holdMessage = false;
+                        publishProgress("move_message");
+                    }else{
                         publishProgress("move");
                     }
                 } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
@@ -264,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         @Override
         protected void onProgressUpdate(String... method) {
-            if (method[0].equals("move") || method[0].equals("move_with_wheel")) {
+            if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
                 String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else { //must be wheel update
@@ -461,13 +462,15 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 } else if (result[1].equals("brake")) {
                     makeSnackbar("Stopping car!");
                     System.out.println("stopping car");
-                } else if (result[1].equals("move")) {
+                } else if (result[1].equals("move_message")) {
                     System.out.println("moving update");
                     makeSnackbar("Moving car...");
                 } else if (result[1].equals("wheel")) {
                     System.out.println("wheel update");
                 } else if (result[1].equals("move_with_wheel")) {
                     System.out.println("move+wheel update");
+                } else if (result[1].equals("move")) {
+                    System.out.println("move update");
                 }
             } else {
                 if (result[1].equals("disable")) {
