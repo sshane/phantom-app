@@ -147,12 +147,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public class CheckUpdate extends AsyncTask<ArrayList<String>, String, Boolean> {
         protected Boolean doInBackground(ArrayList<String>... commits) {
             ArrayList<String> commitsSince = commits[0];
-            Boolean isUpdate = false;
             for (int commit = 0; commit < commitsSince.size(); commit++) {
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
                 try {
-                    URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/"+commitsSince.get(commit));
+                    URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                     connection = (HttpURLConnection) url.openConnection();
                     connection.connect();
                     InputStream stream = connection.getInputStream();
@@ -164,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     }
                     JSONArray files = new JSONObject(buffer.toString()).getJSONArray("files");
                     for (int file = 0; file < files.length(); file++) {
-                        if (files.getJSONObject(file).getString("filename").equals("phantom-app.apk")){
+                        if (files.getJSONObject(file).getString("filename").equals("phantom-app.apk")) {
                             return true;
                         }
                     }
@@ -193,9 +192,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         protected void onPostExecute(Boolean result) {
             if (result == null) {
                 makeSnackbar("Unable to check for updates!");
-            }else if(result){
+            } else if (result) {
                 outOfDate();
-            }else{
+            } else {
                 makeSnackbar("You're on the latest commit!");
             }
         }
@@ -317,8 +316,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         startActivity(browserIntent);
                     }
 
-                }).setCancelable(false)
-                .show();
+                }).show();
 
         int titleText = getResources().getIdentifier("alertTitle", "id", "android");
         ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
