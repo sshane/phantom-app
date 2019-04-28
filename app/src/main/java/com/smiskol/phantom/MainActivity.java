@@ -131,7 +131,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     JSONArray commits = new JSONArray(result);
                     ArrayList<String> commitsSince = new ArrayList<>();
                     for (int commit = 0; commit < commits.length(); commit++) {
-                        commitsSince.add(commits.getJSONObject(commit).getString("sha"));
+                        if (!commits.getJSONObject(commit).getString("sha").equals(getString(R.string.current_commit))) {
+                            commitsSince.add(commits.getJSONObject(commit).getString("sha"));
+                        } else {
+                            break;
+                        }
                     }
                     new CheckUpdate().execute(commitsSince);
                 } catch (Exception e) {
@@ -146,7 +150,10 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public class CheckUpdate extends AsyncTask<ArrayList<String>, String, Boolean> {
         protected Boolean doInBackground(ArrayList<String>... commits) {
             ArrayList<String> commitsSince = commits[0];
+            System.out.println(commitsSince);
+            System.out.println(commitsSince.size());
             for (int commit = 0; commit < commitsSince.size(); commit++) {
+                System.out.println("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
                 try {
@@ -166,11 +173,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                             return true;
                         }
                     }
-
-                    return false;
-
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return null;
                 } finally {
                     if (connection != null) {
                         connection.disconnect();
@@ -184,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     }
                 }
             }
-            return null;
+            return false;
         }
 
         @Override
