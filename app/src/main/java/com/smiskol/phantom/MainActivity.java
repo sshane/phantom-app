@@ -152,10 +152,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public class CheckUpdate extends AsyncTask<ArrayList<String>, String, Boolean> {
         protected Boolean doInBackground(ArrayList<String>... commits) {
             ArrayList<String> commitsSince = commits[0];
-            System.out.println(commitsSince);
-            System.out.println(commitsSince.size());
             for (int commit = 0; commit < commitsSince.size(); commit++) {
-                System.out.println("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
                 try {
