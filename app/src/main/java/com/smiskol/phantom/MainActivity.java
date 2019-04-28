@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         getSupportActionBar().hide();
         doWelcome();
         new GetCommits().execute();
+        
     }
 
     public class GetCommits extends AsyncTask<Void, String, String> {
