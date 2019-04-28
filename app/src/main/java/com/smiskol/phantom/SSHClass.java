@@ -40,7 +40,7 @@ public class SSHClass {
             prop.put("StrictHostKeyChecking", "no");
             prop.put("PreferredAuthentications", "publickey");
             session.setConfig(prop);
-            session.connect(2000);
+            session.connect(5000);
         }
         return session;
     }
@@ -52,7 +52,7 @@ public class SSHClass {
             ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
 
             channelExec.setCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
-            channelExec.connect();
+            channelExec.connect(5000);
             channelExec.disconnect();
             return true;
         } catch (Exception e) {

@@ -72,6 +72,7 @@ public class WelcomeFragment extends Fragment {
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
+                    ((MainActivity) getActivity()).runPhantomThread = false;
                     String[] params = new String[]{"false", "0.0", "0", String.valueOf(System.currentTimeMillis()), "disable"};
                     new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
@@ -108,9 +109,22 @@ public class WelcomeFragment extends Fragment {
     }
 
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
-
         @Override
         protected String[] doInBackground(String... params) {
+            if (params[4].equals("disable")) {
+                while (((MainActivity) getActivity()).phantomThreadRunning) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                try{
+                    Thread.sleep(500);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
             ((MainActivity) getActivity()).runningProcesses += 1;
             Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
@@ -125,6 +139,7 @@ public class WelcomeFragment extends Fragment {
                     makeSnackbar("Enabled Phantom!");
                 } else if (result[1].equals("disable")) {
                     doDisable();
+                    System.out.println("disabled phantom mode");
                     makeSnackbar("Disabled Phantom!");
                 } else if (result[1].equals("brake")) {
                     makeSnackbar("Stopping car!");

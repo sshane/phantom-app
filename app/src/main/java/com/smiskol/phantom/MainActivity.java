@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Double desiredSpeed = 5.0;
     Boolean trackingSteer = false;
     Boolean steerLetGo = false;
+    Boolean phantomThreadRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,9 +211,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public void onFragmentInteraction(Uri uri) {
     }
 
+    Boolean showStopMessage = false;
+
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
         protected Boolean doInBackground(Void... v) {
+            phantomThreadRunning = true;
             runPhantomThread = true;
             previousSteer = steeringAngle;
             System.out.println("started phantom thread");
@@ -236,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
 
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
+                    showStopMessage = true;
                     if (!previousSteer.equals(steeringAngle) && trackingSteer && !steerLetGo) {
                         previousSteer = steeringAngle;
                         publishProgress("move_with_wheel");
@@ -256,8 +261,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     previousSteer = steeringAngle;
                     steerLetGo = false;
                     publishProgress("wheel");
+                } else if (showStopMessage) {
+                    showStopMessage = false;
+                    publishProgress("brake");
                 } else {
-                    publishProgress("stop");
+                    publishProgress("brake_no_message");
                 }
                 if (!runPhantomThread) {
                     return true;
@@ -273,14 +281,15 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             } else if (method[0].equals("wheel")) {
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-            } else if (method[0].equals("stop")) {
-                String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), "brake_no_message"};
+            } else if (method[0].equals("brake") || method[0].equals("brake_no_message")) {
+                String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }
 
         @Override
         protected void onPostExecute(Boolean result) {
+            phantomThreadRunning = false;
             System.out.println("stopped phantom thread");
             if (runPhantomThread) {
                 makeSnackbar("Lost connection to the EON!");
@@ -468,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     makeSnackbar("Stopping car!");
                     System.out.println("stopping car");
                 } else if (result[1].equals("brake_no_message")) {
-                    System.out.println("stop command");
+                    System.out.println("brake command");
                 } else if (result[1].equals("move_message")) {
                     System.out.println("moving update");
                     makeSnackbar("Moving car...");
@@ -495,7 +504,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         viewPager.setCurrentItem(0);
         adapter.setViewCount(1);
         tabLayout.setVisibility(View.GONE);
-        runPhantomThread = false;
     }
 
     public void writeSupportingFiles() {
