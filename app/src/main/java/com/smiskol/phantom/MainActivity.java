@@ -136,7 +136,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                                 commitsSince.add(commits.getJSONObject(commit).getString("sha"));
                             }
                         } else {
-                            commitsSince.remove(commitsSince.size() - 1);
+                            try {
+                                commitsSince.remove(commitsSince.size() - 1);
+                            } catch (Exception e) {}
                             break;
                         }
                     }
