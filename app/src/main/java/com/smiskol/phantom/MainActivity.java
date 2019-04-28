@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     } else if (holdMessage) {
                         holdMessage = false;
                         publishProgress("move_message");
-                    }else{
+                    } else {
                         publishProgress("move");
                     }
                 } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
@@ -256,6 +256,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     previousSteer = steeringAngle;
                     steerLetGo = false;
                     publishProgress("wheel");
+                } else {
+                    publishProgress("stop");
                 }
                 if (!runPhantomThread) {
                     return true;
@@ -268,8 +270,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
                 String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-            } else { //must be wheel update
+            } else if (method[0].equals("wheel")) {
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
+                new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+            } else if (method[0].equals("stop")) {
+                String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), "brake_no_message"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }
@@ -462,6 +467,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 } else if (result[1].equals("brake")) {
                     makeSnackbar("Stopping car!");
                     System.out.println("stopping car");
+                } else if (result[1].equals("brake_no_message")) {
+                    System.out.println("stop command");
                 } else if (result[1].equals("move_message")) {
                     System.out.println("moving update");
                     makeSnackbar("Moving car...");
