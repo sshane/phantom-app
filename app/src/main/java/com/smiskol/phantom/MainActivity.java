@@ -132,7 +132,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     ArrayList<String> commitsSince = new ArrayList<>();
                     for (int commit = 0; commit < commits.length(); commit++) {
                         if (!commits.getJSONObject(commit).getString("sha").equals(getString(R.string.current_commit))) {
-                            commitsSince.add(commits.getJSONObject(commit).getString("sha"));
+                            if (commit > 0) {
+                                commitsSince.add(commits.getJSONObject(commit).getString("sha"));
+                            }
                         } else {
                             break;
                         }
