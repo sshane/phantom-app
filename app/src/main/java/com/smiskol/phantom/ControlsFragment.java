@@ -63,13 +63,13 @@ public class ControlsFragment extends Fragment {
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.startTransition(175);
                     ((MainActivity) getActivity()).goDown = System.currentTimeMillis();
-                    //((MainActivity) getActivity()).holdMessage = true;
+                    ((MainActivity) getActivity()).holdMessage = true;
                     ((MainActivity) getActivity()).buttonHeld = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     System.out.println("move button up");
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.reverseTransition(175);
-                    //((MainActivity) getActivity()).holdMessage = false;
+                    ((MainActivity) getActivity()).holdMessage = false;
                     ((MainActivity) getActivity()).buttonHeld = false;
                     ((MainActivity) getActivity()).goDuration = System.currentTimeMillis() - ((MainActivity) getActivity()).goDown;
                     if (((MainActivity) getActivity()).goDuration < 200) {

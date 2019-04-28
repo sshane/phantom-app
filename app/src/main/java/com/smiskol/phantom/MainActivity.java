@@ -31,6 +31,7 @@ import android.widget.TextView;
 import com.jcraft.jsch.Session;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,6 +42,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
@@ -55,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     SSHClass sshClass = new SSHClass();
     Long goDown = Long.valueOf(0);
     Long goDuration = Long.valueOf(0);
-    //Boolean holdMessage = false;
+    Boolean holdMessage = false;
     Boolean buttonHeld = false;
     Boolean runPhantomThread = true;
     Integer runningProcesses = 0;
@@ -83,10 +85,10 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         getSupportActionBar().hide();
         doWelcome();
-        new CheckUpdate().execute();
+        new GetCommits().execute();
     }
 
-    private class CheckUpdate extends AsyncTask<Void, String, String> {
+    public class GetCommits extends AsyncTask<Void, String, String> {
         protected String doInBackground(Void... params) {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
@@ -124,17 +126,77 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         protected void onPostExecute(String result) {
             if (result == null) {
                 makeSnackbar("Unable to check for updates!");
-            }
-            try {
-                String latestCommitSHA = new JSONArray(result).getJSONObject(1).getString("sha");
-                if (getString(R.string.current_commit).equals(latestCommitSHA)) {
-                    makeSnackbar("You're on the latest commit!");
-                } else {
-                    outOfDate();
+            } else {
+                try {
+                    JSONArray commits = new JSONArray(result);
+                    ArrayList<String> commitsSince = new ArrayList<>();
+                    for (int commit = 0; commit < commits.length(); commit++) {
+                        commitsSince.add(commits.getJSONObject(commit).getString("sha"));
+                    }
+
+                    new CheckUpdate().execute(commitsSince);
+                } catch (Exception e) {
+                    makeSnackbar("Unable to check for updates!");
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
+            }
+
+        }
+    }
+
+    public class CheckUpdate extends AsyncTask<ArrayList<String>, String, Boolean> {
+        protected Boolean doInBackground(ArrayList<String>... commits) {
+            ArrayList<String> commitsSince = commits[0];
+            Boolean isUpdate = false;
+            for (int commit = 0; commit < commitsSince.size(); commit++) {
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                try {
+                    URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/"+commitsSince.get(commit));
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+                    InputStream stream = connection.getInputStream();
+                    reader = new BufferedReader(new InputStreamReader(stream));
+                    StringBuffer buffer = new StringBuffer();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line + "\n");
+                    }
+                    JSONArray files = new JSONObject(buffer.toString()).getJSONArray("files");
+                    for (int file = 0; file < files.length(); file++) {
+                        if (files.getJSONObject(file).getString("filename").equals("phantom-app.apk")){
+                            return true;
+                        }
+                    }
+
+                    return false;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                    try {
+                        if (reader != null) {
+                            reader.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result == null) {
                 makeSnackbar("Unable to check for updates!");
-                e.printStackTrace();
+            }else if(result){
+                outOfDate();
+            }else{
+                makeSnackbar("You're on the latest commit!");
             }
         }
     }
@@ -153,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             while (true) {
                 System.out.println(runningProcesses);
                 try {
-                    Thread.sleep(250);
+                    Thread.sleep(200);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -162,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     while (runningProcesses > maxProcesses) {
                         System.out.println("waiting for excess processes to finish");
                         try {
-                            Thread.sleep(250);
+                            Thread.sleep(200);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -170,16 +232,15 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
 
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
-                    if (!previousSteer.equals(steeringAngle) && trackingSteer) {
+                    if (!previousSteer.equals(steeringAngle) && trackingSteer && !steerLetGo) {
                         previousSteer = steeringAngle;
                         publishProgress("move_with_wheel");
                     } else if (steerLetGo) {
                         previousSteer = steeringAngle;
                         steerLetGo = false;
                         publishProgress("move_with_wheel");
-
-                    } else {
-                        //holdMessage = false;
+                    } else if (holdMessage) {
+                        holdMessage = false;
                         publishProgress("move");
                     }
                 } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
