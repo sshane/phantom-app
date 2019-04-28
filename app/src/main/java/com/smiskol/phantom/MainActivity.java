@@ -205,7 +205,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        //you can leave it empty
     }
 
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
