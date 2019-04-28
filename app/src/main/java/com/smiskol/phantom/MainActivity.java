@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                                 commitsSince.add(commits.getJSONObject(commit).getString("sha"));
                             }
                         } else {
+                            commitsSince.remove(commitsSince.size() - 1);
                             break;
                         }
                     }
@@ -155,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             for (int commit = 0; commit < commitsSince.size(); commit++) {
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
+                System.out.println("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                 try {
                     URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                     connection = (HttpURLConnection) url.openConnection();
