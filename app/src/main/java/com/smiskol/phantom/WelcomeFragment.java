@@ -101,13 +101,6 @@ public class WelcomeFragment extends Fragment {
         }
     }
 
-    public void lostConnection() {
-        connectSwitch.setChecked(false);
-        connectSwitch.setEnabled(true);
-        listeningTextView.setText("Not Connected");
-        ipEditText.setEnabled(true);
-    }
-
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
         @Override
         protected String[] doInBackground(String... params) {
@@ -126,7 +119,7 @@ public class WelcomeFragment extends Fragment {
                 }
             }
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, ipEditText.getText().toString(), params[0], params[1], params[2], params[3]);
+            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonConnection, params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 

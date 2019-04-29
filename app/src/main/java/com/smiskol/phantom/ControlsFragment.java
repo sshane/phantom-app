@@ -84,38 +84,6 @@ public class ControlsFragment extends Fragment {
         });
     }
 
-    public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
-
-        @Override
-        protected String[] doInBackground(String... params) {
-            ((MainActivity) getActivity()).runningProcesses += 1;
-
-            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, ((MainActivity) getActivity()).eonIP, params[0], params[1], params[2], params[3]);
-            return new String[]{result.toString(), params[4]};
-        }
-
-        @Override
-        protected void onPostExecute(String... result) {
-            ((MainActivity) getActivity()).runningProcesses -= 1;
-            if (result[0].equals("true")) {
-                if (result[1].equals("brake")) {
-                    makeSnackbar("Stopping car!");
-                    System.out.println("stopping car");
-                } else if (result[1].equals("move")) {
-                    System.out.println("moving update");
-                    makeSnackbar("Moving car...");
-                } else if (result[1].equals("wheel")) {
-                    System.out.println("wheel update");
-                } else if (result[1].equals("move_with_wheel")) {
-                    System.out.println("move+wheel update");
-                }
-            } else {
-                makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
-            }
-        }
-    }
-
-
     public void setUpListeners() {
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

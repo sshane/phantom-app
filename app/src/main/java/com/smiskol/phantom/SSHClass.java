@@ -1,62 +1,39 @@
 package com.smiskol.phantom;
 
+import java.io.File;
+
 import android.content.Context;
 import android.os.StrictMode;
 
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-
-import java.io.File;
-import java.util.Properties;
+import ch.ethz.ssh2.Connection;
+import ch.ethz.ssh2.Session;
 
 public class SSHClass {
-    Session session;
-
-    public Boolean closeSession(Session session) {
+    public Connection getSession(Context context, String eonIP) {
+        String username = "root";
+        File keyfile = new File(context.getFilesDir(), "eon_id.ppk");
         try {
-            session.disconnect();
-            return true;
+            Connection conn = new Connection(eonIP, 8022);
+            conn.connect();
+            boolean isAuthenticated = conn.authenticateWithPublicKey(username, keyfile, "");
+            if (!isAuthenticated) {
+                return null;
+            }
+            return conn;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
-
-    public Session getSession(Context context, String eonIP) throws Exception {
+    public Boolean sendPhantomCommand(Connection conn, String enabled, String desiredSpeed, String steeringAngle, String time) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
-            if (!session.isConnected()) {
-                session.connect();
-            }
-        } catch (Throwable t) {
-            JSch jsch = new JSch();
-            File file = new File(context.getFilesDir(), "eon_id.ppk");
-            jsch.addIdentity(file.getAbsolutePath());
-            session = jsch.getSession("root", eonIP, 8022);
-
-            Properties prop = new Properties();
-            prop.put("StrictHostKeyChecking", "no");
-            prop.put("PreferredAuthentications", "publickey");
-            session.setConfig(prop);
-            session.connect(2000);
-        }
-        return session;
-    }
-
-    public Boolean sendPhantomCommand(Session session, String eonIP, String enabled, String desiredSpeed, String steeringAngle, String time) {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        try {
-            ChannelExec channelExec = (ChannelExec) session.openChannel("exec");
-
-            channelExec.setCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
-            channelExec.connect(2000);
-            channelExec.disconnect();
+            Session sess = conn.openSession();
+            sess.execCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
+            sess.close();
             return true;
         } catch (Exception e) {
-            System.out.println(eonIP);
             e.printStackTrace();
             return true;
         }

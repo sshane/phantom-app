@@ -21,8 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.jcraft.jsch.Session;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,6 +35,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import ch.ethz.ssh2.Connection;
+
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
     android.support.v7.widget.Toolbar toolbar;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Typeface semibold;
     Typeface regular;
     TabLayout tabLayout;
-    Session eonSession;
+    Connection eonConnection;
     String eonIP;
     SSHClass sshClass = new SSHClass();
     Long goDown = Long.valueOf(0);
@@ -435,14 +435,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public Boolean openSession(String eonIP) {
-        try {
-            eonSession = sshClass.getSession(MainActivity.this, eonIP);
-            return true;
-        } catch (Exception e) {
-            System.out.println("HERE SADLY");
-            e.printStackTrace();
+        eonConnection = sshClass.getSession(MainActivity.this, eonIP);
+        if (eonConnection == null) {
             return false;
         }
+        System.out.println("opened session!");
+        return true;
     }
 
     public void doSuccessful() {
@@ -460,7 +458,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = sshClass.sendPhantomCommand(eonSession, eonIP, params[0], params[1], params[2], params[3]);
+            Boolean result = sshClass.sendPhantomCommand(eonConnection, params[0], params[1], params[2], params[3]);
             return new String[]{result.toString(), params[4]};
         }
 
