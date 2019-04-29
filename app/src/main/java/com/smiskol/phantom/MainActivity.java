@@ -435,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public Boolean openSession(String eonIP) {
-        eonConnection = sshClass.getSession(MainActivity.this, eonIP);
+        eonConnection = sshClass.getConnection(MainActivity.this, eonIP);
         if (eonConnection == null) {
             return false;
         }

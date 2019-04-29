@@ -9,17 +9,17 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 
 public class SSHClass {
-    public Connection getSession(Context context, String eonIP) {
+    public Connection getConnection(Context context, String eonIP) {
         String username = "root";
         File keyfile = new File(context.getFilesDir(), "eon_id.ppk");
         try {
-            Connection conn = new Connection(eonIP, 8022);
-            conn.connect();
-            boolean isAuthenticated = conn.authenticateWithPublicKey(username, keyfile, "");
+            Connection connection = new Connection(eonIP, 8022);
+            connection.connect();
+            boolean isAuthenticated = connection.authenticateWithPublicKey(username, keyfile, "");
             if (!isAuthenticated) {
                 return null;
             }
-            return conn;
+            return connection;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -29,9 +29,9 @@ public class SSHClass {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
-            Session sess = conn.openSession();
-            sess.execCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
-            sess.close();
+            Session session = conn.openSession();
+            session.execCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
+            session.close();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
