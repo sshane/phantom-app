@@ -12,20 +12,13 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.jcraft.jsch.Session;
@@ -158,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             for (int commit = 0; commit < commitsSince.size(); commit++) {
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
-                System.out.println("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                 try {
                     URL url = new URL("https://api.github.com/repos/ShaneSmiskol/phantom-app/commits/" + commitsSince.get(commit));
                     connection = (HttpURLConnection) url.openConnection();
@@ -216,6 +208,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
         protected Boolean doInBackground(Void... v) {
+            Integer iterations = 0;
+            Integer threadSleep = 250;
             phantomThreadRunning = true;
             runPhantomThread = true;
             previousSteer = steeringAngle;
@@ -223,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             while (true) {
                 System.out.println(runningProcesses);
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(threadSleep);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -232,13 +226,12 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     while (runningProcesses > maxProcesses) {
                         System.out.println("waiting for excess processes to finish");
                         try {
-                            Thread.sleep(200);
+                            Thread.sleep(threadSleep);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 }
-
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
                     showStopMessage = true;
                     if (!previousSteer.equals(steeringAngle) && trackingSteer && !steerLetGo) {
@@ -252,7 +245,10 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         holdMessage = false;
                         publishProgress("move_message");
                     } else {
-                        publishProgress("move");
+                        if (iterations > (2500 / threadSleep)) {
+                            iterations = 0;
+                            publishProgress("move");
+                        }
                     }
                 } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
                     previousSteer = steeringAngle;
@@ -265,11 +261,15 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     showStopMessage = false;
                     publishProgress("brake");
                 } else {
-                    publishProgress("brake_no_message");
+                    if (iterations > (2500 / threadSleep)) {
+                        iterations = 0;
+                        publishProgress("brake_no_message");
+                    }
                 }
                 if (!runPhantomThread) {
                     return true;
                 }
+                iterations += 1;
             }
         }
 
