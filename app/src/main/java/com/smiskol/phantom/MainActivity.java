@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         getSupportActionBar().hide();
         doWelcome();
         new GetCommits().execute();
+
     }
 
     public class GetCommits extends AsyncTask<Void, String, String> {
@@ -245,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         holdMessage = false;
                         publishProgress("move_message");
                     } else {
-                        if (iterations > (2500 / threadSleep)) {
+                        if (iterations > (3000 / threadSleep)) {
                             iterations = 0;
                             publishProgress("move");
                         }
@@ -261,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     showStopMessage = false;
                     publishProgress("brake");
                 } else {
-                    if (iterations > (2500 / threadSleep)) {
+                    if (iterations > (3000 / threadSleep)) {
                         iterations = 0;
                         publishProgress("brake_no_message");
                     }
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("brake") || method[0].equals("brake_no_message")) {
-                String[] params = new String[]{"true", "0.0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }

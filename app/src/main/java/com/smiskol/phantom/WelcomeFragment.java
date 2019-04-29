@@ -73,7 +73,7 @@ public class WelcomeFragment extends Fragment {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
                     ((MainActivity) getActivity()).runPhantomThread = false;
-                    String[] params = new String[]{"false", "0.0", "0", String.valueOf(System.currentTimeMillis()), "disable"};
+                    String[] params = new String[]{"false", "0", "0", String.valueOf(System.currentTimeMillis()), "disable"};
                     new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
                 }
@@ -91,7 +91,7 @@ public class WelcomeFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean result) {
             if (result) {
-                String[] params = new String[]{"true", "0.0", "0", String.valueOf(System.currentTimeMillis()), "enable"};
+                String[] params = new String[]{"true", "0", "0", String.valueOf(System.currentTimeMillis()), "enable"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
             } else {
                 doDisable();
