@@ -140,14 +140,14 @@ public class ControlsFragment extends Fragment {
         speedPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).desiredSpeed = Math.min(((MainActivity) getActivity()).desiredSpeed + 0.5, 10);
+                ((MainActivity) getActivity()).desiredSpeed = Math.min(((MainActivity) getActivity()).desiredSpeed + 0.5, 12);
                 speedTextView.setText(String.valueOf(((MainActivity) getActivity()).desiredSpeed) + " mph");
             }
         });
         speedSubButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).desiredSpeed = Math.max(((MainActivity) getActivity()).desiredSpeed - 0.5, 2);
+                ((MainActivity) getActivity()).desiredSpeed = Math.max(((MainActivity) getActivity()).desiredSpeed - 0.5, 6);
                 speedTextView.setText(String.valueOf(((MainActivity) getActivity()).desiredSpeed) + " mph");
             }
         });

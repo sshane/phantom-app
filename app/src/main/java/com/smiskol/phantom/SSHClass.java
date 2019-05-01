@@ -43,7 +43,6 @@ public class SSHClass {
             Connection connection = new Connection(eonIP, 8022);
             connection.connect();
             Boolean isAuthenticated = connection.authenticateWithPublicKey(username, privateKey.toCharArray(), "");
-            //boolean isAuthenticated = connection.authenticateWithPublicKey(username, keyfile, "");
             if (!isAuthenticated) {
                 return null;
             }

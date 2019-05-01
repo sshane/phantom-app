@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), method[0]};
+                String[] params = new String[]{"true", String.valueOf((desiredSpeed + 1) * 0.44704), String.valueOf(steeringAngle), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("wheel")) {
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};
