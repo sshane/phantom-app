@@ -55,12 +55,13 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean runPhantomThread = true;
     Integer runningProcesses = 0;
     Integer maxProcesses = 1;
-    Double previousSteer = 0.0;
-    Double steeringAngle = 0.0;
+    Integer previousSteer = 0;
+    Integer steeringAngle = 0;
     Double desiredSpeed = 5.0;
     Boolean trackingSteer = false;
     Boolean steerLetGo = false;
     Boolean phantomThreadRunning = false;
+    Integer timeValue = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -277,13 +278,13 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected void onProgressUpdate(String... method) {
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
-                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
+                String[] params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("wheel")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("brake") || method[0].equals("brake_no_message")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), String.valueOf(System.currentTimeMillis()), method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }
@@ -437,10 +438,20 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public Boolean openSession(String eonIP) {
         eonConnection = sshClass.getConnection(MainActivity.this, eonIP);
         if (eonConnection == null) {
+            System.out.println("failed to open connection");
             return false;
         }
-        System.out.println("opened session!");
+        System.out.println("opened connection!");
         return true;
+    }
+
+    public String getTime() { //doesn't need to be time, just unique value for disconnect detection
+        if (timeValue > 500) {
+            timeValue = 0;
+        } else {
+            timeValue += 1;
+        }
+        return String.valueOf(timeValue);
     }
 
     public void doSuccessful() {
@@ -458,8 +469,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = sshClass.sendPhantomCommand(eonConnection, params[0], params[1], params[2], params[3]);
-            return new String[]{result.toString(), params[4]};
+            Boolean result = sshClass.sendPhantomCommand(eonConnection, params[0], params[1], params[2], getTime());
+            return new String[]{result.toString(), params[3]};
         }
 
         @Override

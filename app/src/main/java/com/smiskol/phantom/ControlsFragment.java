@@ -89,7 +89,7 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 steerTextView.setText(-(progress - 100) + "°");
-                ((MainActivity) getActivity()).steeringAngle = -((progress - 100) * 1.2);
+                ((MainActivity) getActivity()).steeringAngle = -(progress - 100);
             }
 
             @Override

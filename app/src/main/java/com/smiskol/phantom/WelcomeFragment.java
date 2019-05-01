@@ -67,13 +67,11 @@ public class WelcomeFragment extends Fragment {
                         Animation mShakeAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.shake);
                         ipEditTextLayout.startAnimation(mShakeAnimation);
                     }
-
-
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
                     ((MainActivity) getActivity()).runPhantomThread = false;
-                    String[] params = new String[]{"false", "0", "0", String.valueOf(System.currentTimeMillis()), "disable"};
+                    String[] params = new String[]{"false", "0", "0", "disable"};
                     new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
                 }
@@ -91,7 +89,7 @@ public class WelcomeFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean result) {
             if (result) {
-                String[] params = new String[]{"true", "0", "0", String.valueOf(System.currentTimeMillis()), "enable"};
+                String[] params = new String[]{"true", "0", "0", "enable"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
             } else {
                 doDisable();
@@ -104,7 +102,7 @@ public class WelcomeFragment extends Fragment {
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
         @Override
         protected String[] doInBackground(String... params) {
-            if (params[4].equals("disable")) {
+            if (params[3].equals("disable")) {
                 while (((MainActivity) getActivity()).phantomThreadRunning) {
                     try {
                         Thread.sleep(50);
@@ -112,15 +110,15 @@ public class WelcomeFragment extends Fragment {
                         e.printStackTrace();
                     }
                 }
-                try{
+                try {
                     Thread.sleep(500);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonConnection, params[0], params[1], params[2], params[3]);
-            return new String[]{result.toString(), params[4]};
+            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonConnection, params[0], params[1], params[2], ((MainActivity) getActivity()).getTime());
+            return new String[]{result.toString(), params[3]};
         }
 
         @Override
