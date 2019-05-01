@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Integer maxProcesses = 1;
     Integer previousSteer = 0;
     Integer steeringAngle = 0;
-    Double desiredSpeed = 5.0;
+    Double desiredSpeed = 9.0;
     Boolean trackingSteer = false;
     Boolean steerLetGo = false;
     Boolean phantomThreadRunning = false;
