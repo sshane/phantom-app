@@ -123,7 +123,7 @@
                 android:textSize="26sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="9.0 mph" />
+                android:text="8.0 mph" />
 
         </LinearLayout>
 
