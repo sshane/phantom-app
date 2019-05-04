@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean steerLetGo = false;
     Boolean phantomThreadRunning = false;
     Integer timeValue = 0;
+    ch.ethz.ssh2.Session eonSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         getSupportActionBar().hide();
         doWelcome();
         new GetCommits().execute();
-
     }
 
     public class GetCommits extends AsyncTask<Void, String, String> {
@@ -380,6 +380,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public Boolean openSession(String eonIP) {
         eonConnection = sshClass.getConnection(eonIP);
+        eonSession = sshClass.getSession("192.168.1.32");
         if (eonConnection == null) {
             System.out.println("failed to open connection");
             return false;

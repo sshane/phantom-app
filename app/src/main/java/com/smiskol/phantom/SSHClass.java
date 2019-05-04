@@ -1,6 +1,10 @@
 package com.smiskol.phantom;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import android.content.Context;
 import android.os.StrictMode;
@@ -66,4 +70,65 @@ public class SSHClass {
             return true;
         }
     }
+
+    public Session getSession(String eonIP) {
+        String username = "root";
+        try {
+            Connection connection = new Connection(eonIP, 8022);
+            connection.connect();
+            Boolean isAuthenticated = connection.authenticateWithPublicKey(username, privateKey.toCharArray(), "");
+            if (!isAuthenticated) {
+                return null;
+            }
+            Session session = connection.openSession();
+            session.requestDumbPTY();
+            session.startShell();
+
+            OutputStream os = session.getStdin();
+            os.write("cd /data/openpilot\n".getBytes());
+            os.write("python\n".getBytes());
+            os.write("from selfdrive.phantom_receiver_new import PhantomReceiver\n".getBytes());
+            os.write("PR=PhantomReceiver()\n".getBytes());
+            os.write("PR.close_socket()\n".getBytes());
+            os.write("PR.open_socket()\n".getBytes());
+            //InputStream stdout = new ch.ethz.ssh2.StreamGobbler(session.getStdout());
+            //BufferedReader br = new BufferedReader(new InputStreamReader(stdout));
+            return session;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Boolean sendPhantomNew(Session session){
+        try {
+            OutputStream os = session.getStdin();
+            os.write("PR.broadcast_data(True, 69., 6.9, 696.0)\n".getBytes());
+
+            //BufferedReader br = new BufferedReader(new InputStreamReader(stdout));
+            //BufferedReader br_err = new BufferedReader(new InputStreamReader(stderr));
+            /*
+
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+
+            StringBuilder sb_err = new StringBuilder();
+            String line_err = null;
+            while ((line_err = br_err.readLine()) != null) {
+                sb_err.append(line_err + "\n");
+            }
+            System.out.println(sb.toString());
+            System.out.println(sb_err.toString());*/
+
+            System.out.println("SUCCESS!");
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }

@@ -7,6 +7,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
@@ -140,6 +141,13 @@ public class ControlsFragment extends Fragment {
         speedPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((MainActivity) getActivity()).sshClass.sendPhantomNew(((MainActivity) getActivity()).eonSession);
+                    }
+                }).start();
+
                 ((MainActivity) getActivity()).desiredSpeed = Math.min(((MainActivity) getActivity()).desiredSpeed + 2.0, 16);
                 speedTextView.setText(String.valueOf(((MainActivity) getActivity()).desiredSpeed) + " mph");
             }
