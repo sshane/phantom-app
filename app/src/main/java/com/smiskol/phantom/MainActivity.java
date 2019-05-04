@@ -29,7 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ch.ethz.ssh2.Connection;
+import ch.ethz.ssh2.Session;
 
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Typeface semibold;
     Typeface regular;
     TabLayout tabLayout;
-    Connection eonConnection;
     String eonIP;
     SSHClass sshClass = new SSHClass();
     Long goDown = Long.valueOf(0);
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean steerLetGo = false;
     Boolean phantomThreadRunning = false;
     Integer timeValue = 0;
-    ch.ethz.ssh2.Session eonSession;
+    Session eonSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -379,9 +378,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     }
 
     public Boolean openSession(String eonIP) {
-        eonConnection = sshClass.getConnection(eonIP);
-        eonSession = sshClass.getSession("192.168.1.32");
-        if (eonConnection == null) {
+        eonSession = sshClass.getSession(eonIP);
+        if (eonSession == null) {
             System.out.println("failed to open connection");
             return false;
         }
@@ -413,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = sshClass.sendPhantomCommand(eonConnection, params[0], params[1], params[2], getTime());
+            Boolean result = sshClass.sendPhantomCommand(eonSession, params[0], params[1], params[2], getTime());
             return new String[]{result.toString(), params[3]};
         }
 

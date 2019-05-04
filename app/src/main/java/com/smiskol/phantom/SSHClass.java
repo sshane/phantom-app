@@ -1,13 +1,6 @@
 package com.smiskol.phantom;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-
-import android.content.Context;
-import android.os.StrictMode;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
@@ -41,35 +34,6 @@ public class SSHClass {
             "2trgYpUlSBLIOmPNxonJIfnozphLGOnKNe0RWgGR8BnwhRYzu+k=\n" +
             "-----END RSA PRIVATE KEY-----\n";
 
-    public Connection getConnection(String eonIP) {
-        String username = "root";
-        try {
-            Connection connection = new Connection(eonIP, 8022);
-            connection.connect();
-            Boolean isAuthenticated = connection.authenticateWithPublicKey(username, privateKey.toCharArray(), "");
-            if (!isAuthenticated) {
-                return null;
-            }
-            return connection;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public Boolean sendPhantomCommand(Connection conn, String enabled, String desiredSpeed, String steeringAngle, String time) {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        try {
-            Session session = conn.openSession();
-            session.execCommand("python /data/openpilot/selfdrive/phantom_receiver.py " + enabled + " " + desiredSpeed + " " + steeringAngle + " " + time);
-            session.close();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return true;
-        }
-    }
 
     public Session getSession(String eonIP) {
         String username = "root";
@@ -87,12 +51,9 @@ public class SSHClass {
             OutputStream os = session.getStdin();
             os.write("cd /data/openpilot\n".getBytes());
             os.write("python\n".getBytes());
-            os.write("from selfdrive.phantom_receiver_new import PhantomReceiver\n".getBytes());
+            os.write("from selfdrive.phantom_receiver import PhantomReceiver\n".getBytes());
             os.write("PR=PhantomReceiver()\n".getBytes());
-            os.write("PR.close_socket()\n".getBytes());
             os.write("PR.open_socket()\n".getBytes());
-            //InputStream stdout = new ch.ethz.ssh2.StreamGobbler(session.getStdout());
-            //BufferedReader br = new BufferedReader(new InputStreamReader(stdout));
             return session;
         } catch (Exception e) {
             e.printStackTrace();
@@ -100,32 +61,24 @@ public class SSHClass {
         }
     }
 
-    public Boolean sendPhantomNew(Session session){
+    public Boolean sendPhantomCommand(Session session, String enabled, String desiredSpeed, String steeringAngle, String time) {
         try {
+            if (enabled.equals("true") || enabled.equals("True")) {
+                enabled = "True";
+            } else {
+                enabled = "False";
+            }
             OutputStream os = session.getStdin();
-            os.write("PR.broadcast_data(True, 69., 6.9, 696.0)\n".getBytes());
-
-            //BufferedReader br = new BufferedReader(new InputStreamReader(stdout));
-            //BufferedReader br_err = new BufferedReader(new InputStreamReader(stderr));
-            /*
-
-            StringBuilder sb = new StringBuilder();
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                sb.append(line + "\n");
+            String command = "PR.broadcast_data(" + enabled + ", " + desiredSpeed + ", " + steeringAngle + ", " + time + ")\n";
+            os.write(command.getBytes());
+            if (enabled.equals("False")){  //close all sessions and socks
+                os.write("PR.close_socket()\n".getBytes());
+                os.write("exit()\n".getBytes());
+                os.write("exit\n".getBytes());
+                session.close();
             }
-
-            StringBuilder sb_err = new StringBuilder();
-            String line_err = null;
-            while ((line_err = br_err.readLine()) != null) {
-                sb_err.append(line_err + "\n");
-            }
-            System.out.println(sb.toString());
-            System.out.println(sb_err.toString());*/
-
-            System.out.println("SUCCESS!");
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;

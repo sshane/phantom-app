@@ -117,7 +117,7 @@ public class WelcomeFragment extends Fragment {
                 }
             }
             ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonConnection, params[0], params[1], params[2], ((MainActivity) getActivity()).getTime());
+            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, params[0], params[1], params[2], ((MainActivity) getActivity()).getTime());
             return new String[]{result.toString(), params[3]};
         }
 
