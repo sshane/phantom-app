@@ -212,7 +212,7 @@
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:max="100"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+                android:theme="@style/SettingsDialog" />
 
             <TextView
                 android:id="@+id/maxSteerTextDeg"
