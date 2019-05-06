@@ -12,18 +12,6 @@
         android:animateLayoutChanges="true"
         android:background="#222222">
 
-        <TextView
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:fontFamily="@font/product"
-            android:layout_width="wrap_content"
-            android:gravity="center"
-            android:layout_height="wrap_content"
-            android:text="This app is extremely experimental.\nPlease do not use outside of your car."
-            android:textSize="12sp"
-            android:layout_marginBottom="2dp"
-            android:textColor="#FFFFFF" />
-
         <LinearLayout
             android:id="@+id/welcomeLayoutTitle"
             android:layout_marginTop="60dp"
@@ -114,6 +102,30 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
         </LinearLayout>
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_marginBottom="15dp"
+            android:layout_centerHorizontal="true"
+            android:layout_above="@+id/disclaimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:text="SETTINGS"/>
+
+        <TextView
+            android:id="@+id/disclaimer"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:fontFamily="@font/product"
+            android:layout_width="wrap_content"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:text="This app is extremely experimental.\nPlease do not use outside of your car."
+            android:textSize="12sp"
+            android:layout_marginBottom="2dp"
+            android:textColor="#FFFFFF" />
     </RelativeLayout>
 
 </FrameLayout>

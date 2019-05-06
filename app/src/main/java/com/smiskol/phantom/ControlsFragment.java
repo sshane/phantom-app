@@ -25,6 +25,7 @@ public class ControlsFragment extends Fragment {
     ImageButton speedPlusButton;
     ImageButton speedSubButton;
     TextView speedTextView;
+    MainActivity context;
 
     private OnFragmentInteractionListener mListener;
 
@@ -47,6 +48,7 @@ public class ControlsFragment extends Fragment {
         speedSubButton = view.findViewById(R.id.speedSubButton);
         holdButton = view.findViewById(R.id.holdButton);
         speedTextView = view.findViewById(R.id.speedTextView);
+        context = ((MainActivity) getActivity());
         setUpListeners();
         setUpHoldButton();
         return view;
@@ -61,22 +63,22 @@ public class ControlsFragment extends Fragment {
                     System.out.println("move button down");
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.startTransition(175);
-                    ((MainActivity) getActivity()).goDown = System.currentTimeMillis();
-                    ((MainActivity) getActivity()).holdMessage = true;
-                    ((MainActivity) getActivity()).buttonHeld = true;
+                    context.goDown = System.currentTimeMillis();
+                    context.holdMessage = true;
+                    context.buttonHeld = true;
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     System.out.println("move button up");
                     TransitionDrawable transition = (TransitionDrawable) holdButton.getBackground();
                     transition.reverseTransition(175);
-                    ((MainActivity) getActivity()).holdMessage = false;
-                    ((MainActivity) getActivity()).buttonHeld = false;
-                    ((MainActivity) getActivity()).goDuration = System.currentTimeMillis() - ((MainActivity) getActivity()).goDown;
-                    if (((MainActivity) getActivity()).goDuration < 200) {
+                    context.holdMessage = false;
+                    context.buttonHeld = false;
+                    context.goDuration = System.currentTimeMillis() - context.goDown;
+                    if (context.goDuration < 200) {
                         if (!(event.getAction() == MotionEvent.ACTION_CANCEL)) {
                             makeSnackbar("You must hold button down for acceleration!");
                         }
                     }
-                    System.out.println("Button held for " + ((MainActivity) getActivity()).goDuration + " ms");
+                    System.out.println("Button held for " + context.goDuration + " ms");
                 }
                 return false;
             }
@@ -88,17 +90,17 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 steerTextView.setText(-(progress - 100) + "°");
-                ((MainActivity) getActivity()).steeringAngle = -(progress - 100);
+                context.steeringAngle = -(progress - 100);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                ((MainActivity) getActivity()).trackingSteer = true;
+                context.trackingSteer = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                ((MainActivity) getActivity()).trackingSteer = false;
+                context.trackingSteer = false;
                 if (seekBar.getProgress() > 100) {
                     final Integer endProgress = (steerSeekBar.getProgress() - 100) / 2;
                     new Thread(new Runnable() {
@@ -113,7 +115,7 @@ public class ControlsFragment extends Fragment {
                                 }
                             }
                             steerSeekBar.setProgress(100);
-                            ((MainActivity) getActivity()).steerLetGo = true;
+                            context.steerLetGo = true;
                         }
                     }).start();
                 } else if (seekBar.getProgress() < 100) {
@@ -130,7 +132,7 @@ public class ControlsFragment extends Fragment {
                                 }
                             }
                             steerSeekBar.setProgress(100);
-                            ((MainActivity) getActivity()).steerLetGo = true;
+                            context.steerLetGo = true;
                         }
                     }).start();
                 }
@@ -139,15 +141,15 @@ public class ControlsFragment extends Fragment {
         speedPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).desiredSpeed = Math.min(((MainActivity) getActivity()).desiredSpeed + 2.0, 16);
-                speedTextView.setText(String.valueOf(((MainActivity) getActivity()).desiredSpeed) + " mph");
+                context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 16);
+                speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
             }
         });
         speedSubButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).desiredSpeed = Math.max(((MainActivity) getActivity()).desiredSpeed - 2.0, 0);
-                speedTextView.setText(String.valueOf(((MainActivity) getActivity()).desiredSpeed) + " mph");
+                context.desiredSpeed = Math.max(context.desiredSpeed - 2.0, 0);
+                speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
             }
         });
     }

@@ -1,6 +1,8 @@
 package com.smiskol.phantom;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -24,6 +27,10 @@ public class WelcomeFragment extends Fragment {
     Switch connectSwitch;
     EditText ipEditText;
     TextInputLayout ipEditTextLayout;
+    Button settingsButton;
+    Typeface semibold;
+    Typeface regular;
+    MainActivity context;
 
     private OnFragmentInteractionListener mListener;
 
@@ -43,9 +50,17 @@ public class WelcomeFragment extends Fragment {
         connectSwitch = view.findViewById(R.id.connectSwitchNew);
         ipEditTextLayout = view.findViewById(R.id.ipEditTextLayoutNew);
         ipEditText = view.findViewById(R.id.ipEditTextNew);
+        settingsButton = view.findViewById(R.id.settingsButton);
+        context = ((MainActivity) getActivity());
         startListeners();
-        ipEditText.setText(((MainActivity) getActivity()).preferences.getString("eonIP", ""));
+        ipEditText.setText(context.preferences.getString("eonIP", ""));
+        semibold = ResourcesCompat.getFont(context, R.font.product_bold);
+        regular = ResourcesCompat.getFont(context, R.font.product_regular);
         return view;
+    }
+    
+    public void test(String s){
+        
     }
 
     public void startListeners() {
@@ -70,20 +85,45 @@ public class WelcomeFragment extends Fragment {
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
-                    ((MainActivity) getActivity()).runPhantomThread = false;
+                    context.runPhantomThread = false;
                     String[] params = new String[]{"false", "0", "0", "disable"};
                     new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
                     listeningTextView.setText("Disabling...");
                 }
             }
         });
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openSettingsDialog();
+            }
+        });
+    }
+    
+    public void openSettingsDialog(){
+        AlertDialog successDialog = new AlertDialog.Builder(context).setTitle("Settings!")
+                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and wheel angle via SSH.")
+                .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //infoDialog();
+                    }
+                }).setCancelable(false)
+                .show();
+
+        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
+        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+        tmpMessage.setTypeface(regular);
+        tmpButton.setTypeface(semibold);
     }
 
     public class openSession extends AsyncTask<String, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(String... params) {
-            return ((MainActivity) getActivity()).openSession(ipEditText.getText().toString());
+            return context.openSession(ipEditText.getText().toString());
         }
 
         @Override
@@ -103,7 +143,7 @@ public class WelcomeFragment extends Fragment {
         @Override
         protected String[] doInBackground(String... params) {
             if (params[3].equals("disable")) {
-                while (((MainActivity) getActivity()).phantomThreadRunning) {
+                while (context.phantomThreadRunning) {
                     try {
                         Thread.sleep(50);
                     } catch (Exception e) {
@@ -116,14 +156,14 @@ public class WelcomeFragment extends Fragment {
                     e.printStackTrace();
                 }
             }
-            ((MainActivity) getActivity()).runningProcesses += 1;
-            Boolean result = ((MainActivity) getActivity()).sshClass.sendPhantomCommand(((MainActivity) getActivity()).eonSession, params[0], params[1], params[2], ((MainActivity) getActivity()).getTime());
+            context.runningProcesses += 1;
+            Boolean result = context.sshClass.sendPhantomCommand(context.eonSession, params[0], params[1], params[2], context.getTime());
             return new String[]{result.toString(), params[3]};
         }
 
         @Override
         protected void onPostExecute(String... result) {
-            ((MainActivity) getActivity()).runningProcesses -= 1;
+            context.runningProcesses -= 1;
             if (result[0].equals("true")) {
                 if (result[1].equals("enable")) {
                     doSuccessful();
@@ -156,7 +196,7 @@ public class WelcomeFragment extends Fragment {
     }
 
     public void doDisable() {
-        ((MainActivity) getActivity()).doDisable();
+        context.doDisable();
         connectSwitch.setChecked(false);
         connectSwitch.setEnabled(true);
         listeningTextView.setText("Not Connected");
@@ -164,11 +204,11 @@ public class WelcomeFragment extends Fragment {
     }
 
     public void doSuccessful() {
-        ((MainActivity) getActivity()).doSuccessful();
+        context.doSuccessful();
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
-        ((MainActivity) getActivity()).eonIP = ipEditText.getText().toString();
-        ((MainActivity) getActivity()).preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
+        context.eonIP = ipEditText.getText().toString();
+        context.preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
         listeningTextView.setText("Connected!");
     }
 
