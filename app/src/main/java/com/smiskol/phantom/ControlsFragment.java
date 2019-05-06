@@ -89,6 +89,7 @@ public class ControlsFragment extends Fragment {
         if (context.useMph) {
             speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
         } else {
+            context.desiredSpeed = 13.0;
             speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
         }
 
