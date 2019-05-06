@@ -19,8 +19,13 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 public class WelcomeFragment extends Fragment {
     TextView listeningTextView;
@@ -30,6 +35,7 @@ public class WelcomeFragment extends Fragment {
     Button settingsButton;
     Typeface semibold;
     Typeface regular;
+    RelativeLayout settingsDialogView;
     MainActivity context;
 
     private OnFragmentInteractionListener mListener;
@@ -56,11 +62,8 @@ public class WelcomeFragment extends Fragment {
         ipEditText.setText(context.preferences.getString("eonIP", ""));
         semibold = ResourcesCompat.getFont(context, R.font.product_bold);
         regular = ResourcesCompat.getFont(context, R.font.product_regular);
+        settingsDialogView = view.findViewById(R.id.settingsDialogView);
         return view;
-    }
-    
-    public void test(String s){
-        
     }
 
     public void startListeners() {
@@ -99,24 +102,68 @@ public class WelcomeFragment extends Fragment {
             }
         });
     }
-    
-    public void openSettingsDialog(){
-        AlertDialog successDialog = new AlertDialog.Builder(context).setTitle("Settings!")
-                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and wheel angle via SSH.")
+
+    public void openSettingsDialog() {
+        final AlertDialog settingsDialog = new AlertDialog.Builder(context).setTitle("Settings")
+                .setMessage("")
                 .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //infoDialog();
                     }
-                }).setCancelable(false)
-                .show();
+                }).show();
+        if (settingsDialogView.getParent() != null) {
+            ((ViewGroup) settingsDialogView.getParent()).removeView(settingsDialogView);
+        }
+        settingsDialogView.setVisibility(View.VISIBLE);
 
-        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
-        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
-        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
-        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
-        tmpMessage.setTypeface(regular);
-        tmpButton.setTypeface(semibold);
+        settingsDialog.setContentView(settingsDialogView);
+        Button settingsSaveButton = settingsDialog.findViewById(R.id.settingsSaveButton);
+        SeekBar maxAngleSeekBar = settingsDialog.findViewById(R.id.maxAngleSeekBar);
+        final TextView maxSteerText = settingsDialog.findViewById(R.id.maxSteerTextDeg);
+        Switch unitSwitch = settingsDialog.findViewById(R.id.unitSwitch);
+        context.maxSteer = context.preferences.getInt("maxSteer", 100);
+        maxAngleSeekBar.setProgress(interp(context.maxSteer, 100, 360, 0, 100));
+        maxSteerText.setText(context.maxSteer + "°");
+        maxAngleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                context.maxSteer = interp(progress, 0, 100, 100, 360);
+                maxSteerText.setText(interp(progress, 0, 100, 100, 360) + "°");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        context.useMph=context.preferences.getBoolean("useMph", true);
+        unitSwitch.setChecked(context.preferences.getBoolean("useMph", true));
+        unitSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                context.useMph=isChecked;
+            }
+        });
+
+        settingsSaveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeSnackbar("Saved settings!");
+                context.preferences.edit().putInt("maxSteer", context.maxSteer).apply();
+                context.preferences.edit().putBoolean("useMph", context.useMph).apply();
+                settingsDialog.dismiss();
+            }
+        });
+    }
+
+    public Integer interp(int value, int from1, int to1, int from2, int to2) {
+        return (int) Math.round(((Double.valueOf(value)) - (Double.valueOf(from1))) / ((Double.valueOf(to1)) - (Double.valueOf(from1))) * ((Double.valueOf(to2)) - (Double.valueOf(from2))) + (Double.valueOf(from2)));
     }
 
     public class openSession extends AsyncTask<String, Void, Boolean> {

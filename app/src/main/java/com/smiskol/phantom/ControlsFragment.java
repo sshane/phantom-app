@@ -19,7 +19,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class ControlsFragment extends Fragment {
-    CustomSeekBar steerSeekBar;
+    CenterSeekBar steerSeekBar;
     TextView steerTextView;
     LinearLayout holdButton;
     ImageButton speedPlusButton;
@@ -86,52 +86,67 @@ public class ControlsFragment extends Fragment {
     }
 
     public void setUpListeners() {
+        if (context.useMph) {
+            speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
+        } else {
+            speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
+        }
+
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(-(progress - 100) + "°");
-                context.steeringAngle = -(progress - 100);
+                steerTextView.setText(-(progress - context.maxSteer) + "°");
+                context.steeringAngle = -(progress - context.maxSteer);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                steerSeekBar.setMax(context.maxSteer * 2);
+                steerSeekBar.setProgress(context.maxSteer / 2);
                 context.trackingSteer = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                final Integer incrementBy = interp(context.maxSteer, 100, 360, 2, 4);
+                final Integer threadLength;
+                if (context.maxSteer >= 230) {
+                    threadLength = 2;
+                } else {
+                    threadLength = 1;
+                }
                 context.trackingSteer = false;
-                if (seekBar.getProgress() > 100) {
-                    final Integer endProgress = (steerSeekBar.getProgress() - 100) / 2;
+                if (seekBar.getProgress() > context.maxSteer) {
+                    final Integer endProgress = (steerSeekBar.getProgress() - context.maxSteer) / 2;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            for (int l = 0; l <= endProgress; l++) {
-                                steerSeekBar.setProgress(steerSeekBar.getProgress() - 2);
+                            for (int l = 0; l <= endProgress / threadLength; l++) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() - incrementBy);
                                 try {
                                     Thread.sleep(2);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
-                            steerSeekBar.setProgress(100);
+                            steerSeekBar.setProgress(context.maxSteer);
                             context.steerLetGo = true;
                         }
                     }).start();
-                } else if (seekBar.getProgress() < 100) {
-                    final Integer endProgress = (100 - steerSeekBar.getProgress()) / 2;
+                } else if (seekBar.getProgress() < context.maxSteer) {
+                    final Integer endProgress = (context.maxSteer - steerSeekBar.getProgress()) / 2;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            for (int l = 0; l <= endProgress; l++) {
-                                steerSeekBar.setProgress(steerSeekBar.getProgress() + 2);
+                            for (int l = 0; l <= endProgress / threadLength; l++) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() + incrementBy);
                                 try {
                                     Thread.sleep(2);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
-                            steerSeekBar.setProgress(100);
+                            steerSeekBar.setProgress(context.maxSteer);
                             context.steerLetGo = true;
                         }
                     }).start();
@@ -141,17 +156,31 @@ public class ControlsFragment extends Fragment {
         speedPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 16);
-                speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
+                if (context.useMph) {
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 16);
+                    speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
+                } else {
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 3.0, 26);
+                    speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
+                }
             }
         });
         speedSubButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.desiredSpeed = Math.max(context.desiredSpeed - 2.0, 0);
-                speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
+                if (context.useMph) {
+                    context.desiredSpeed = Math.max(context.desiredSpeed - 2.0, 0);
+                    speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
+                } else {
+                    context.desiredSpeed = Math.max(context.desiredSpeed - 3.0, 0);
+                    speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
+                }
             }
         });
+    }
+
+    public Integer interp(int value, int from1, int to1, int from2, int to2) {
+        return (int) Math.round(((Double.valueOf(value)) - (Double.valueOf(from1))) / ((Double.valueOf(to1)) - (Double.valueOf(from1))) * ((Double.valueOf(to2)) - (Double.valueOf(from2))) + (Double.valueOf(from2)));
     }
 
     @Override

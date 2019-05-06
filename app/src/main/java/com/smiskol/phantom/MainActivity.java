@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean phantomThreadRunning = false;
     Integer timeValue = 0;
     Session eonSession;
+    Integer maxSteer;
+    Boolean useMph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         tabLayout.setupWithViewPager(viewPager);
         semibold = ResourcesCompat.getFont(this, R.font.product_bold);
         regular = ResourcesCompat.getFont(this, R.font.product_regular);
+        maxSteer = preferences.getInt("maxSteer", 100);
+        useMph = preferences.getBoolean("useMph", true);
 
         getSupportActionBar().hide();
         doWelcome();
@@ -270,8 +274,14 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         @Override
         protected void onProgressUpdate(String... method) {
+            System.out.println(steeringAngle);
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
-                String[] params = new String[]{"true", String.valueOf((desiredSpeed + 1) * 0.44704), String.valueOf(steeringAngle), method[0]};
+                String[] params;
+                if (useMph) {
+                    params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), method[0]};
+                } else {
+                    params = new String[]{"true", String.valueOf(desiredSpeed / 3.6), String.valueOf(steeringAngle), method[0]};
+                }
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("wheel")) {
                 String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};

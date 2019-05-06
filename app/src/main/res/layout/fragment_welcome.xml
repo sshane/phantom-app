@@ -112,7 +112,7 @@
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
             style="@style/Widget.AppCompat.Button.Borderless.Colored"
-            android:text="SETTINGS"/>
+            android:text="SETTINGS" />
 
         <TextView
             android:id="@+id/disclaimer"
@@ -126,6 +126,111 @@
             android:textSize="12sp"
             android:layout_marginBottom="2dp"
             android:textColor="#FFFFFF" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:visibility="gone"
+        android:background="#FFFFFF"
+        android:id="@+id/settingsDialogView"
+        android:layout_width="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="10dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/settingsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:layout_marginLeft="23dp"
+            android:layout_marginTop="22dp"
+            android:textColor="#000000"
+            android:text="Settings"
+            android:fontFamily="@font/product_bold" />
+
+        <LinearLayout
+            android:id="@+id/settingsView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_below="@id/settingsTitle"
+            android:layout_marginTop="11dp"
+            android:layout_centerHorizontal="true">
+
+            <TextView
+                android:id="@+id/unitToggleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Unit Toggle"
+                android:textSize="18sp"
+                android:textColor="#3d3d3d"
+                android:fontFamily="@font/product" />
+
+            <LinearLayout
+                android:layout_marginTop="5dp"
+                android:id="@+id/unitView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="km/h"
+                    android:fontFamily="@font/product" />
+
+                <Switch
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:id="@+id/unitSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:theme="@style/SettingsDialog" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="mph"
+                    android:fontFamily="@font/product" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/maxSteerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Max Steering Angle"
+                android:textSize="18sp"
+                android:textColor="#3d3d3d"
+                android:layout_marginTop="22dp"
+                android:fontFamily="@font/product" />
+
+            <SeekBar
+                android:layout_marginTop="5dp"
+                android:id="@+id/maxAngleSeekBar"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+            <TextView
+                android:id="@+id/maxSteerTextDeg"
+                android:fontFamily="@font/product"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100°" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/settingsSaveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SAVE"
+            android:layout_below="@+id/settingsView"
+            android:layout_alignParentRight="true"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored" />
     </RelativeLayout>
 
 </FrameLayout>
