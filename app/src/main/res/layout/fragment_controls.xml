@@ -49,8 +49,8 @@
                 android:layout_marginTop="15dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="200"
-                android:progress="100"
+                android:max="1000"
+                android:progress="500"
                 android:progressDrawable="@android:color/transparent" />
 
             <TextView
@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:textSize="26sp"
-                android:text="0°" />
+                android:text="0 N×mm" />
 
         </LinearLayout>
 
@@ -123,7 +123,7 @@
                 android:textSize="26sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="8.0 mph" />
+                android:text="10.0 mph" />
 
         </LinearLayout>
 

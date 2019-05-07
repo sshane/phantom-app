@@ -89,14 +89,14 @@ public class ControlsFragment extends Fragment {
         if (context.useMph) {
             speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
         } else {
-            context.desiredSpeed = 13.0;
+            context.desiredSpeed = 16.0;
             speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
         }
 
         steerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                steerTextView.setText(-(progress - context.maxSteer) + "°");
+                steerTextView.setText(-(progress - context.maxSteer) + " N×mm");
                 context.steeringAngle = -(progress - context.maxSteer);
             }
 
@@ -108,22 +108,14 @@ public class ControlsFragment extends Fragment {
             }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                final Integer incrementBy = interp(context.maxSteer, 100, 360, 2, 4);
-                final Integer threadLength;
-                if (context.maxSteer >= 230) {
-                    threadLength = 2;
-                } else {
-                    threadLength = 1;
-                }
+            public void onStopTrackingTouch(final SeekBar seekBar) {
                 context.trackingSteer = false;
                 if (seekBar.getProgress() > context.maxSteer) {
-                    final Integer endProgress = (steerSeekBar.getProgress() - context.maxSteer) / 2;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            for (int l = 0; l <= endProgress / threadLength; l++) {
-                                steerSeekBar.setProgress(steerSeekBar.getProgress() - incrementBy);
+                            while (seekBar.getProgress() > context.maxSteer) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() - Math.max((Math.abs(seekBar.getProgress() - context.maxSteer) / 25), 2));
                                 try {
                                     Thread.sleep(2);
                                 } catch (Exception e) {
@@ -135,12 +127,11 @@ public class ControlsFragment extends Fragment {
                         }
                     }).start();
                 } else if (seekBar.getProgress() < context.maxSteer) {
-                    final Integer endProgress = (context.maxSteer - steerSeekBar.getProgress()) / 2;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            for (int l = 0; l <= endProgress / threadLength; l++) {
-                                steerSeekBar.setProgress(steerSeekBar.getProgress() + incrementBy);
+                            while (seekBar.getProgress() < context.maxSteer) {
+                                steerSeekBar.setProgress(steerSeekBar.getProgress() + Math.max((Math.abs(seekBar.getProgress() - context.maxSteer) / 25), 2));
                                 try {
                                     Thread.sleep(2);
                                 } catch (Exception e) {
@@ -158,10 +149,10 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (context.useMph) {
-                    context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 16);
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 20);
                     speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
                 } else {
-                    context.desiredSpeed = Math.min(context.desiredSpeed + 3.0, 26);
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 3.0, 32);
                     speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
                 }
             }
