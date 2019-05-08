@@ -34,11 +34,13 @@ public class SSHClass {
             "2trgYpUlSBLIOmPNxonJIfnozphLGOnKNe0RWgGR8BnwhRYzu+k=\n" +
             "-----END RSA PRIVATE KEY-----\n";
 
+    Connection connection;
+
 
     public Session getSession(String eonIP) {
         String username = "root";
         try {
-            Connection connection = new Connection(eonIP, 8022);
+            connection = new Connection(eonIP, 8022);
             connection.connect();
             Boolean isAuthenticated = connection.authenticateWithPublicKey(username, privateKey.toCharArray(), "");
             if (!isAuthenticated) {
@@ -72,10 +74,15 @@ public class SSHClass {
             String command = "PR.broadcast_data(" + enabled + ", " + desiredSpeed + ", " + steeringAngle + ", " + time + ")\n";
             os.write(command.getBytes());
             if (enabled.equals("False")){  //close all sessions and socks
-                os.write("PR.close_socket()\n".getBytes());
-                os.write("exit()\n".getBytes());
-                os.write("exit\n".getBytes());
-                session.close();
+                try {
+                    os.write("PR.close_socket()\n".getBytes());
+                    os.write("exit()\n".getBytes());
+                    os.write("exit\n".getBytes());
+                    session.close();
+                    connection.close();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
             return true;
         } catch (Exception e) {

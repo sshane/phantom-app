@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         tmpButton.setTypeface(semibold);
     }
 
-    public Boolean openSession(String eonIP) {
+    public Boolean openSession() {
         eonSession = sshClass.getSession(eonIP);
         if (eonSession == null) {
             System.out.println("failed to open connection");

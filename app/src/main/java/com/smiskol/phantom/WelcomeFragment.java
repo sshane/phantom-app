@@ -78,6 +78,7 @@ public class WelcomeFragment extends Fragment {
                         ipEditText.setEnabled(false);
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
+                        context.eonIP=ipEditText.getText().toString();
                         new openSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
                         connectSwitch.setChecked(false);
@@ -170,7 +171,7 @@ public class WelcomeFragment extends Fragment {
 
         @Override
         protected Boolean doInBackground(String... params) {
-            return context.openSession(ipEditText.getText().toString());
+            return context.openSession();
         }
 
         @Override
@@ -233,6 +234,7 @@ public class WelcomeFragment extends Fragment {
             } else {
                 if (result[1].equals("disable")) {
                     connectSwitch.setEnabled(true);
+                    new openSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     makeSnackbar("Error disabling Phantom mode!");
                 } else {
                     doDisable();
@@ -254,7 +256,6 @@ public class WelcomeFragment extends Fragment {
         context.doSuccessful();
         connectSwitch.setChecked(true);
         connectSwitch.setEnabled(true);
-        context.eonIP = ipEditText.getText().toString();
         context.preferences.edit().putString("eonIP", ipEditText.getText().toString()).apply();
         listeningTextView.setText("Connected!");
     }
