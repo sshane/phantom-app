@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         tabLayout.setupWithViewPager(viewPager);
         semibold = ResourcesCompat.getFont(this, R.font.product_bold);
         regular = ResourcesCompat.getFont(this, R.font.product_regular);
-        maxSteer = preferences.getInt("maxSteer", 100);
+        maxSteer = preferences.getInt("maxSteer", 1000);
         useMph = preferences.getBoolean("useMph", true);
 
         getSupportActionBar().hide();
