@@ -129,7 +129,7 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:visibility="gone"
+        android:visibility="visible"
         android:background="#FFFFFF"
         android:id="@+id/settingsDialogView"
         android:layout_width="wrap_content"
@@ -211,7 +211,7 @@
                 android:id="@+id/maxAngleSeekBar"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
-                android:max="100"
+                android:max="20"
                 android:theme="@style/SettingsDialog" />
 
             <TextView

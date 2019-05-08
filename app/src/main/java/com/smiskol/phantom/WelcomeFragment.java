@@ -124,13 +124,14 @@ public class WelcomeFragment extends Fragment {
         final TextView maxSteerText = settingsDialog.findViewById(R.id.maxSteerTextDeg);
         Switch unitSwitch = settingsDialog.findViewById(R.id.unitSwitch);
         context.maxSteer = context.preferences.getInt("maxSteer", 1000);
-        maxAngleSeekBar.setProgress(interp(context.maxSteer, 1000, 2000, 0, 100));
+        maxAngleSeekBar.setProgress(interp(context.maxSteer, 1000, 2000, 0, 20));
         maxSteerText.setText(context.maxSteer + " N×mm");
         maxAngleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                context.maxSteer = interp(progress, 0, 100, 1000, 2000);
-                maxSteerText.setText(interp(progress, 0, 100, 1000, 2000) + " N×mm");
+                context.maxSteer = interp(progress, 0, 20, 1000, 2000);
+                System.out.println(context.maxSteer);
+                maxSteerText.setText(interp(progress, 0, 20, 1000, 2000) + " N×mm");
             }
 
             @Override
