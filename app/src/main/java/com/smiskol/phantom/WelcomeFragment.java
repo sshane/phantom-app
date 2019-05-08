@@ -3,6 +3,7 @@ package com.smiskol.phantom;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -11,11 +12,14 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -37,6 +41,7 @@ public class WelcomeFragment extends Fragment {
     Typeface regular;
     RelativeLayout settingsDialogView;
     MainActivity context;
+    LinearLayout welcomeLayoutTitle;
 
     private OnFragmentInteractionListener mListener;
 
@@ -63,7 +68,42 @@ public class WelcomeFragment extends Fragment {
         semibold = ResourcesCompat.getFont(context, R.font.product_bold);
         regular = ResourcesCompat.getFont(context, R.font.product_regular);
         settingsDialogView = view.findViewById(R.id.settingsDialogView);
+        welcomeLayoutTitle = view.findViewById(R.id.welcomeLayoutTitle);
+        startInAnimation();
         return view;
+    }
+
+    public void startInAnimation() {
+        TranslateAnimation animation = new TranslateAnimation(0, 0, -400, 0);
+        animation.setInterpolator(new DecelerateInterpolator(1.75f));
+        animation.setDuration(750);
+        welcomeLayoutTitle.startAnimation(animation);
+    }
+
+    public void moveDownAnimation() {
+        TranslateAnimation animation = new TranslateAnimation(0, 0, 0, dpToPixels(40f));
+        animation.setInterpolator(new DecelerateInterpolator(1.75f));
+        animation.setDuration(750);
+        animation.setFillAfter(true);
+        welcomeLayoutTitle.startAnimation(animation);
+    }
+
+    public void moveUpAnimation() {
+        TranslateAnimation animation = new TranslateAnimation(0, 0, dpToPixels(40f), 0);
+        animation.setInterpolator(new DecelerateInterpolator(1.75f));
+        animation.setDuration(750);
+        animation.setFillAfter(true);
+        welcomeLayoutTitle.startAnimation(animation);
+    }
+
+    public float dpToPixels(Float dp) {
+        Resources r = getResources();
+        float px = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                r.getDisplayMetrics()
+        );
+        return px;
     }
 
     public void startListeners() {
@@ -78,7 +118,7 @@ public class WelcomeFragment extends Fragment {
                         ipEditText.setEnabled(false);
                         connectSwitch.setEnabled(false);
                         listeningTextView.setText("Testing connection...");
-                        context.eonIP=ipEditText.getText().toString();
+                        context.eonIP = ipEditText.getText().toString();
                         new openSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     } else {
                         connectSwitch.setChecked(false);
@@ -144,12 +184,12 @@ public class WelcomeFragment extends Fragment {
 
             }
         });
-        context.useMph=context.preferences.getBoolean("useMph", true);
+        context.useMph = context.preferences.getBoolean("useMph", true);
         unitSwitch.setChecked(context.preferences.getBoolean("useMph", true));
         unitSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                context.useMph=isChecked;
+                context.useMph = isChecked;
             }
         });
 
@@ -178,6 +218,7 @@ public class WelcomeFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean result) {
             if (result) {
+                moveDownAnimation();
                 String[] params = new String[]{"true", "0", "0", "enable"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
             } else {
@@ -218,6 +259,7 @@ public class WelcomeFragment extends Fragment {
                     doSuccessful();
                     makeSnackbar("Enabled Phantom!");
                 } else if (result[1].equals("disable")) {
+                    moveUpAnimation();
                     doDisable();
                     System.out.println("disabled phantom mode");
                     makeSnackbar("Disabled Phantom!");
@@ -238,6 +280,7 @@ public class WelcomeFragment extends Fragment {
                     new openSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     makeSnackbar("Error disabling Phantom mode!");
                 } else {
+                    moveUpAnimation();
                     doDisable();
                     makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
                 }

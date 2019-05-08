@@ -14,7 +14,7 @@
 
         <LinearLayout
             android:id="@+id/welcomeLayoutTitle"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="20dp"
             android:layout_centerHorizontal="true"
             android:orientation="vertical"
             android:gravity="center"
