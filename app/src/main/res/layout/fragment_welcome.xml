@@ -208,7 +208,7 @@
 
             <SeekBar
                 android:layout_marginTop="5dp"
-                android:id="@+id/maxAngleSeekBar"
+                android:id="@+id/maxTorqueSeekBar"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:max="20"

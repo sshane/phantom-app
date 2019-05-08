@@ -45,6 +45,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
+                                                <entry key="scalingPercent" value="95" />
                                                 <entry key="trimmed" value="true" />
                                               </map>
                                             </option>

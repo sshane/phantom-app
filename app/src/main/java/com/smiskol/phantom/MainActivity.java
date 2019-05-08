@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Integer runningProcesses = 0;
     Integer maxProcesses = 1;
     Integer previousSteer = 0;
-    Integer steeringAngle = 0;
+    Integer steeringTorque = 0;
     Double desiredSpeed = 10.0;
     Boolean trackingSteer = false;
     Boolean steerLetGo = false;
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             Integer threadSleep = 250;
             phantomThreadRunning = true;
             runPhantomThread = true;
-            previousSteer = steeringAngle;
+            previousSteer = steeringTorque;
             System.out.println("started phantom thread");
             while (true) {
                 System.out.println(runningProcesses);
@@ -233,11 +233,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                 }
                 if ((System.currentTimeMillis() - goDown) > 200 && buttonHeld) {
                     showStopMessage = true;
-                    if (!previousSteer.equals(steeringAngle) && trackingSteer && !steerLetGo) {
-                        previousSteer = steeringAngle;
+                    if (!previousSteer.equals(steeringTorque) && trackingSteer && !steerLetGo) {
+                        previousSteer = steeringTorque;
                         publishProgress("move_with_wheel");
                     } else if (steerLetGo) {
-                        previousSteer = steeringAngle;
+                        previousSteer = steeringTorque;
                         steerLetGo = false;
                         publishProgress("move_with_wheel");
                     } else if (holdMessage) {
@@ -249,11 +249,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                             publishProgress("move");
                         }
                     }
-                } else if (!buttonHeld && !previousSteer.equals(steeringAngle) && trackingSteer) {
-                    previousSteer = steeringAngle;
+                } else if (!buttonHeld && !previousSteer.equals(steeringTorque) && trackingSteer) {
+                    previousSteer = steeringTorque;
                     publishProgress("wheel");
                 } else if (!buttonHeld && steerLetGo) {
-                    previousSteer = steeringAngle;
+                    previousSteer = steeringTorque;
                     steerLetGo = false;
                     publishProgress("wheel");
                 } else if (showStopMessage) {
@@ -274,20 +274,20 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         @Override
         protected void onProgressUpdate(String... method) {
-            System.out.println(steeringAngle);
+            System.out.println(steeringTorque);
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
                 String[] params;
                 if (useMph) {
-                    params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringAngle), method[0]};
+                    params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringTorque), method[0]};
                 } else {
-                    params = new String[]{"true", String.valueOf(desiredSpeed / 3.6), String.valueOf(steeringAngle), method[0]};
+                    params = new String[]{"true", String.valueOf(desiredSpeed / 3.6), String.valueOf(steeringTorque), method[0]};
                 }
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("wheel")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringTorque), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("brake") || method[0].equals("brake_no_message")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringAngle), method[0]};
+                String[] params = new String[]{"true", "0", String.valueOf(steeringTorque), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }
@@ -305,7 +305,23 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public void doWelcome() {
         if (preferences.getBoolean("welcome", true)) {
-            welcomeDialog();
+            AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Welcome!")
+                    .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and wheel torque via SSH.")
+                    .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            infoDialog();
+                        }
+                    }).setCancelable(false)
+                    .setIcon(R.mipmap.ic_launcher)
+                    .show();
+
+            int titleText = getResources().getIdentifier("alertTitle", "id", "android");
+            ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
+            TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
+            Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
+            tmpMessage.setTypeface(regular);
+            tmpButton.setTypeface(semibold);
         }
     }
 
@@ -349,28 +365,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         tmpButton.setTypeface(semibold);
     }
 
-    public void welcomeDialog() {
-        AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Welcome!")
-                .setMessage("Phantom is an experimental app that can remotely control your car's acceleration and wheel angle via SSH.")
-                .setPositiveButton("Sick", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        infoDialog();
-                    }
-                }).setCancelable(false)
-                .show();
-
-        int titleText = getResources().getIdentifier("alertTitle", "id", "android");
-        ((TextView) successDialog.getWindow().findViewById(titleText)).setTypeface(semibold);
-        TextView tmpMessage = successDialog.getWindow().findViewById(android.R.id.message);
-        Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
-        tmpMessage.setTypeface(regular);
-        tmpButton.setTypeface(semibold);
-    }
-
     public void infoDialog() {
         AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Reboot recommended")
-                .setMessage("After you first successfully connect with Phantom, a reboot of your EON is recommended. We append an ssh setting that greatly reduces the latency of sending Phantom commands.")
+                .setMessage("After you first successfully connect with Phantom, a reboot of your EON is recommended. An ssh setting is appended to your sshd_config that greatly reduces the latency of sending Phantom commands.")
                 .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

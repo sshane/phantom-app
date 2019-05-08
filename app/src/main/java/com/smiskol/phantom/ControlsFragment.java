@@ -99,7 +99,7 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 steerTextView.setText(-(progress - context.maxSteer) + " N×mm");
-                context.steeringAngle = -(progress - context.maxSteer);
+                context.steeringTorque = -(progress - context.maxSteer);
             }
 
             @Override

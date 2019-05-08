@@ -29,8 +29,6 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 public class WelcomeFragment extends Fragment {
     TextView listeningTextView;
     Switch connectSwitch;
@@ -160,13 +158,13 @@ public class WelcomeFragment extends Fragment {
 
         settingsDialog.setContentView(settingsDialogView);
         Button settingsSaveButton = settingsDialog.findViewById(R.id.settingsSaveButton);
-        SeekBar maxAngleSeekBar = settingsDialog.findViewById(R.id.maxAngleSeekBar);
+        SeekBar maxTorqueSeekBar = settingsDialog.findViewById(R.id.maxTorqueSeekBar);
         final TextView maxSteerText = settingsDialog.findViewById(R.id.maxSteerTextDeg);
         Switch unitSwitch = settingsDialog.findViewById(R.id.unitSwitch);
         context.maxSteer = context.preferences.getInt("maxSteer", 1000);
-        maxAngleSeekBar.setProgress(interp(context.maxSteer, 1000, 2000, 0, 20));
+        maxTorqueSeekBar.setProgress(interp(context.maxSteer, 1000, 2000, 0, 20));
         maxSteerText.setText(context.maxSteer + " N×mm");
-        maxAngleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        maxTorqueSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 context.maxSteer = interp(progress, 0, 20, 1000, 2000);
