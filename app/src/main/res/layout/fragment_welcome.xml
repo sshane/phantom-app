@@ -129,7 +129,7 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:visibility="visible"
+        android:visibility="gone"
         android:background="#FFFFFF"
         android:id="@+id/settingsDialogView"
         android:layout_width="wrap_content"

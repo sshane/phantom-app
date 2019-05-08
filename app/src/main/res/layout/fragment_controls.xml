@@ -44,6 +44,7 @@
                 android:text="Steering Control" />
 
             <com.smiskol.phantom.CenterSeekBar
+                android:background="@null"
                 android:id="@+id/steerSeekBarNew"
                 android:layout_gravity="center"
                 android:layout_marginTop="15dp"

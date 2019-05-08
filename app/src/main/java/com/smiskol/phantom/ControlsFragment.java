@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -26,6 +27,7 @@ public class ControlsFragment extends Fragment {
     ImageButton speedSubButton;
     TextView speedTextView;
     MainActivity context;
+    Boolean seekBarThreadStarted = false;
 
     private OnFragmentInteractionListener mListener;
 
@@ -105,6 +107,10 @@ public class ControlsFragment extends Fragment {
                 steerSeekBar.setMax(context.maxSteer * 2);
                 steerSeekBar.setProgress(context.maxSteer / 2);
                 context.trackingSteer = true;
+                if (!seekBarThreadStarted) {
+                    seekBarThreadStarted=true;
+                    new SeekBarChecker().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                }
             }
 
             @Override
@@ -169,6 +175,42 @@ public class ControlsFragment extends Fragment {
                 }
             }
         });
+    }
+
+    public class SeekBarChecker extends AsyncTask<Void, String, Void> {
+        @Override
+        protected Void doInBackground(Void... v) {
+            System.out.println("started seek thread");
+            Integer lastSteer = 0;
+            Integer showingSnack = 0;
+            Integer threadSleep = 250;
+            while (context.runPhantomThread) {
+                try {
+                    Thread.sleep(threadSleep);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (Math.abs(steerSeekBar.getProgress() - lastSteer) > steerSeekBar.getMax() / 2) {
+                    if (showingSnack > 2000 / threadSleep && context.trackingSteer) {
+                        makeSnackbar("Make sure you apply large torque differences slowly!");
+                        showingSnack = 0;
+                    }
+
+                }
+                showingSnack++;
+                lastSteer = steerSeekBar.getProgress();
+                if (!context.runPhantomThread){
+                    break;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            System.out.println("stopped seekbar thread!");
+            seekBarThreadStarted = false;
+        }
     }
 
     public Integer interp(int value, int from1, int to1, int from2, int to2) {

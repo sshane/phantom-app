@@ -25,7 +25,8 @@ public class CenterSeekBar extends AppCompatSeekBar {
         super(context, attrs);
         rect = new Rect();
         paint = new Paint();
-        seekbar_height = 6;
+        seekbar_height = 36;
+
     }
 
     public CenterSeekBar(Context context, AttributeSet attrs, int defStyle) {
@@ -34,12 +35,13 @@ public class CenterSeekBar extends AppCompatSeekBar {
 
     @Override
     protected synchronized void onDraw(Canvas canvas) {
+        getThumb().mutate().setAlpha(0);
         rect.set(getThumbOffset() + 5,
                 (getHeight() / 2) - (seekbar_height / 2) + 1,
                 getWidth() - getThumbOffset() - 5,
                 (getHeight() / 2) + (seekbar_height / 2));
 
-        paint.setColor(Color.parseColor("#e2e2e2"));
+        paint.setColor(Color.parseColor("#FFFFFF"));
         canvas.drawRect(rect, paint);
 
         if (this.getProgress() > getMax() / 2) {
