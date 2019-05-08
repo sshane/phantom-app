@@ -149,10 +149,10 @@ public class ControlsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (context.useMph) {
-                    context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 20);
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 2.0, 35);
                     speedTextView.setText(String.valueOf(context.desiredSpeed) + " mph");
                 } else {
-                    context.desiredSpeed = Math.min(context.desiredSpeed + 3.0, 32);
+                    context.desiredSpeed = Math.min(context.desiredSpeed + 3.0, 56);
                     speedTextView.setText(String.valueOf(context.desiredSpeed) + " km/h");
                 }
             }
