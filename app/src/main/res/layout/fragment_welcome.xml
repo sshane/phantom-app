@@ -66,7 +66,7 @@
 
                 <EditText
                     android:digits="1234567890."
-                    android:inputType="textFilter|textNoSuggestions"
+                    android:inputType="textNoSuggestions|textVisiblePassword"
                     android:id="@+id/ipEditTextNew"
                     android:textColor="#FFFFFF"
                     android:layout_height="wrap_content"

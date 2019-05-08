@@ -12,6 +12,9 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.text.Spanned;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -61,12 +64,12 @@ public class WelcomeFragment extends Fragment {
         ipEditText = view.findViewById(R.id.ipEditTextNew);
         settingsButton = view.findViewById(R.id.settingsButton);
         context = ((MainActivity) getActivity());
-        startListeners();
         ipEditText.setText(context.preferences.getString("eonIP", ""));
         semibold = ResourcesCompat.getFont(context, R.font.product_bold);
         regular = ResourcesCompat.getFont(context, R.font.product_regular);
         settingsDialogView = view.findViewById(R.id.settingsDialogView);
         welcomeLayoutTitle = view.findViewById(R.id.welcomeLayoutTitle);
+        startListeners();
         startInAnimation();
         return view;
     }
