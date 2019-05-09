@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected Boolean doInBackground(Void... v) {
             Integer iterations = 0;
-            Integer threadSleep = 250;
+            Integer threadSleep = 100;
             phantomThreadRunning = true;
             runPhantomThread = true;
             previousSteer = steeringTorque;
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         holdMessage = false;
                         publishProgress("move_message");
                     } else {
-                        if (iterations > (3000 / threadSleep)) {
+                        if (iterations > (500 / threadSleep)) {
                             iterations = 0;
                             publishProgress("move");
                         }
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                     showStopMessage = false;
                     publishProgress("brake");
                 } else {
-                    if (iterations > (3000 / threadSleep)) {
+                    if (iterations > (2000 / threadSleep)) {
                         iterations = 0;
                         publishProgress("brake_no_message");
                     }
