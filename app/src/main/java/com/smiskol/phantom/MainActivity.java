@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         holdMessage = false;
                         publishProgress("move_message");
                     } else {
-                        if (iterations > (500 / threadSleep)) {
+                        if (iterations > (250 / threadSleep)) {
                             iterations = 0;
                             publishProgress("move");
                         }
