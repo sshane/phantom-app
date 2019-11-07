@@ -1,11 +1,18 @@
 package com.smiskol.phantom;
 
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 
 public class SSHClass {
+    private static final String TAG = "SSHClass";
     String privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
             "MIIEogIBAAKCAQEAvol16t9E6vieTSmrdylhws3JsGeeZxoeloIAKhAmuQmrAZTP\n" +
             "VXkTqVbt23gPuYdDIm0YGw+AzLVVwbeoBL2fJ3dOBO3iwPS02chQ2e0pEjlY+KFz\n" +
@@ -34,61 +41,120 @@ public class SSHClass {
             "2trgYpUlSBLIOmPNxonJIfnozphLGOnKNe0RWgGR8BnwhRYzu+k=\n" +
             "-----END RSA PRIVATE KEY-----\n";
 
-    Connection connection;
+    Connection connection = null;
+    Session session = null;
+    OutputStream os = null;
+    Integer connectTimeout = 5000;
+    InputStream stdout;
+    BufferedReader br;
 
 
-    public Session getSession(String eonIP) {
+    public int openConnection(String eonIP) {
+        /* Return codes:
+        0: Successful
+        1: Not authenticated
+        2: Connection timeout
+        3: Invalid IP Address
+        4: Generic exception
+        */
         String username = "root";
         try {
             connection = new Connection(eonIP, 8022);
-            connection.connect();
+            connection.connect(null, connectTimeout, connectTimeout);
             Boolean isAuthenticated = connection.authenticateWithPublicKey(username, privateKey.toCharArray(), "");
             if (!isAuthenticated) {
-                return null;
-            }
-            Session session = connection.openSession();
-            session.requestDumbPTY();
-            session.startShell();
+                Log.v(TAG, "Not authenticated!");
+                session = null;
+                return 1;
+            } else {
+                session = connection.openSession();
+                session.requestDumbPTY();
+                session.startShell();
 
-            OutputStream os = session.getStdin();
-            os.write("cd /data/openpilot\n".getBytes());
-            os.write("python\n".getBytes());
-            os.write("from selfdrive.phantom_receiver import PhantomReceiver\n".getBytes());
-            os.write("PR=PhantomReceiver()\n".getBytes());
-            os.write("PR.open_socket()\n".getBytes());
-            return session;
-        } catch (Exception e) {
+                stdout = new ch.ethz.ssh2.StreamGobbler(session.getStdout());
+                br = new BufferedReader(new InputStreamReader(stdout));
+                os = session.getStdin();
+
+                os.write("cd /data/openpilot\n".getBytes());
+                os.write("python\n".getBytes());
+                os.write("from selfdrive.phantom_receiver import PhantomReceiver\n".getBytes());
+                os.write("PR=PhantomReceiver()\n".getBytes());
+                os.write("PR.enable_phantom()\n".getBytes());
+
+                //waitForEON("ENABLED");  //probably not required here
+                return 0;
+            }
+        } catch (java.net.SocketTimeoutException e) {
+            Log.e(TAG, "Connection timeout!");
             e.printStackTrace();
-            return null;
+            session = null;
+            return 2;
+        } catch (IOException e) {
+            Log.e(TAG, "Invalid IP address!");
+            e.printStackTrace();
+            session = null;
+            return 3;
+        } catch (Exception e) {
+            Log.e(TAG, "Exception in getting session!");
+            e.printStackTrace();
+            session = null;
+            return 4;
         }
     }
 
-    public Boolean sendPhantomCommand(Session session, String enabled, String desiredSpeed, String steeringAngle, String time) {
+    public Boolean sendPhantomCommand(String enabled, String desiredSpeed, String steeringAngle, String time) {
         try {
             if (enabled.equals("true") || enabled.equals("True")) {
                 enabled = "True";
             } else {
                 enabled = "False";
             }
-            OutputStream os = session.getStdin();
-            String command = "PR.broadcast_data(" + enabled + ", " + desiredSpeed + ", " + steeringAngle + ", " + time + ")\n";
-            os.write(command.getBytes());
-            if (enabled.equals("False")){  //close all sessions and socks
+            if (enabled.equals("True")) {
+                String command = "PR.receive_data(" + desiredSpeed + "," + steeringAngle + "," + time + ")\n";
+                System.out.println(command);
+                os.write(command.getBytes());
+            } else {  //close all sessions and socks
                 try {
-                    os.write("PR.close_socket()\n".getBytes());
+                    os.write("PR.disable_phantom()\n".getBytes());
+
+                    System.out.println("Waiting for EON to report back as disabled!");
+                    waitForEON("DISABLED");
                     os.write("exit()\n".getBytes());
                     os.write("exit\n".getBytes());
+
+                } catch (Exception e) {
+                    System.out.println("Exception in closing session!");
+                    e.printStackTrace();
+                } finally {
+                    os.close();
                     session.close();
                     connection.close();
-                }catch (Exception e){
-                    e.printStackTrace();
                 }
             }
             return true;
         } catch (Exception e) {
+            System.out.println("Exception in sending command!");
             e.printStackTrace();
         }
         return false;
+    }
+
+    public void waitForEON(String function) {
+        try {
+            String line = "";
+            while (br.ready()) { //wait until eon reports back phantom status changed
+                line = br.readLine();
+                if (line.contains(function)) {
+                    System.out.println("Line contains " + function);
+                    //System.out.println(line);
+                    break;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error getting EON output!");
+        }
     }
 
 }

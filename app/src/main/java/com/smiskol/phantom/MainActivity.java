@@ -29,7 +29,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ch.ethz.ssh2.Session;
 
 public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnFragmentInteractionListener, ControlsFragment.OnFragmentInteractionListener {
     SharedPreferences preferences;
@@ -55,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     Boolean steerLetGo = false;
     Boolean phantomThreadRunning = false;
     Integer timeValue = 0;
-    Session eonSession;
     Integer maxSteer;
     Boolean useMph;
 
@@ -207,13 +205,16 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     public class PhantomThread extends AsyncTask<Void, String, Boolean> {
         @Override
         protected Boolean doInBackground(Void... v) {
-            Integer iterations = 0;
+            Integer iterations = 21;
             Integer threadSleep = 100;
             phantomThreadRunning = true;
             runPhantomThread = true;
             previousSteer = steeringTorque;
             System.out.println("started phantom thread");
             while (true) {
+                if (!runPhantomThread) {
+                    return true;
+                }
                 System.out.println(runningProcesses);
                 try {
                     Thread.sleep(threadSleep);
@@ -264,9 +265,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
                         iterations = 0;
                         publishProgress("brake_no_message");
                     }
-                }
-                if (!runPhantomThread) {
-                    return true;
                 }
                 iterations += 1;
             }
@@ -367,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     public void infoDialog() {
         AlertDialog successDialog = new AlertDialog.Builder(this).setTitle("Reboot recommended")
-                .setMessage("After you first successfully connect with Phantom, a reboot of your EON is recommended. An ssh setting is appended to your sshd_config that greatly reduces the latency of sending Phantom commands.")
+                .setMessage("After you first successfully connect with Phantom, a reboot of your EON is recommended. An ssh setting is appended to your sshd_config that slightly reduces the latency of sending Phantom commands.")
                 .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -382,16 +380,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         Button tmpButton = successDialog.getWindow().findViewById(android.R.id.button1);
         tmpMessage.setTypeface(regular);
         tmpButton.setTypeface(semibold);
-    }
-
-    public Boolean openSession() {
-        eonSession = sshClass.getSession(eonIP);
-        if (eonSession == null) {
-            System.out.println("failed to open connection");
-            return false;
-        }
-        System.out.println("opened connection!");
-        return true;
     }
 
     public String getTime() { //doesn't need to be time, just unique value for disconnect detection
@@ -418,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         @Override
         protected String[] doInBackground(String... params) {
             runningProcesses += 1;
-            Boolean result = sshClass.sendPhantomCommand(eonSession, params[0], params[1], params[2], getTime());
+            Boolean result = sshClass.sendPhantomCommand(params[0], params[1], params[2], getTime());
             return new String[]{result.toString(), params[3]};
         }
 

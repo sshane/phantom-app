@@ -12,9 +12,6 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.text.Spanned;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -130,9 +127,9 @@ public class WelcomeFragment extends Fragment {
                 } else {
                     connectSwitch.setEnabled(false);
                     connectSwitch.setChecked(true);
-                    context.runPhantomThread = false;
                     String[] params = new String[]{"false", "0", "0", "disable"};
                     new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //disable phantom mode on EON
+                    context.runPhantomThread = false;
                     listeningTextView.setText("Disabling...");
                 }
             }
@@ -209,25 +206,31 @@ public class WelcomeFragment extends Fragment {
         return (int) Math.round(((Double.valueOf(value)) - (Double.valueOf(from1))) / ((Double.valueOf(to1)) - (Double.valueOf(from1))) * ((Double.valueOf(to2)) - (Double.valueOf(from2))) + (Double.valueOf(from2)));
     }
 
-    public class openSession extends AsyncTask<String, Void, Boolean> {
+    public class openSession extends AsyncTask<String, Void, Integer> {
 
         @Override
-        protected Boolean doInBackground(String... params) {
-            return context.openSession();
+        protected Integer doInBackground(String... params) {
+            return context.sshClass.openConnection(context.eonIP);
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            if (result) {
+        protected void onPostExecute(Integer result) {
+            if (result == 0) {
                 moveDownAnimation();
                 String[] params = new String[]{"true", "0", "0", "enable"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
-            } else {
-                doDisable();
+                return;
+            }
+            doDisable();
+            if (result == 1) {
+                makeSnackbar("Authentication error! Is this an EON?");
+            } else if (result == 2) {
+                makeSnackbar("Connection timeout... Is your EON on your hotspot?");
+            } else if (result == 3 || result == 4) {
                 makeSnackbar("Couldn't connect to EON! Perhaps wrong IP?");
-
             }
         }
+
     }
 
     public class sendPhantomCommand extends AsyncTask<String, Void, String[]> {
@@ -248,7 +251,7 @@ public class WelcomeFragment extends Fragment {
                 }
             }
             context.runningProcesses += 1;
-            Boolean result = context.sshClass.sendPhantomCommand(context.eonSession, params[0], params[1], params[2], context.getTime());
+            Boolean result = context.sshClass.sendPhantomCommand(params[0], params[1], params[2], context.getTime());
             return new String[]{result.toString(), params[3]};
         }
 
