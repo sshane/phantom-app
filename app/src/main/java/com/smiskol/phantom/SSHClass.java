@@ -77,9 +77,8 @@ public class SSHClass {
 
                 os.write("cd /data/openpilot\n".getBytes());
                 os.write("python\n".getBytes());
-                os.write("from selfdrive.phantom_receiver import PhantomReceiver\n".getBytes());
+                os.write("from selfdrive.phantom.receiver import PhantomReceiver\n".getBytes());
                 os.write("PR=PhantomReceiver()\n".getBytes());
-                os.write("PR.enable_phantom()\n".getBytes());
                 return 0;
             }
         } catch (java.net.SocketTimeoutException e) {
@@ -102,13 +101,8 @@ public class SSHClass {
 
     public Boolean sendPhantomCommand(String enabled, String desiredSpeed, String steeringAngle, String time) {
         try {
-            if (enabled.equals("true") || enabled.equals("True")) {
-                enabled = "True";
-            } else {
-                enabled = "False";
-            }
             if (enabled.equals("True")) {
-                String command = "PR.receive_data(" + desiredSpeed + "," + steeringAngle + "," + time + ")\n";
+                String command = "PR.receive_data(" + desiredSpeed + "," + steeringAngle + ")\n";
                 System.out.println(command);
                 os.write(command.getBytes());
             } else {  //close all sessions and socks
@@ -116,7 +110,7 @@ public class SSHClass {
                     os.write("PR.disable_phantom()\n".getBytes());
 
                     System.out.println("Waiting for EON to report back as disabled!");
-                    waitForEON("DISABLED");
+                    waitForEON();
                     os.write("exit()\n".getBytes());
                     os.write("exit\n".getBytes());
 
@@ -137,13 +131,13 @@ public class SSHClass {
         return false;
     }
 
-    public void waitForEON(String function) {
+    public void waitForEON() {
         try {
-            String line = "";
+            String line;
             while (br.ready()) { //wait until eon reports back phantom status changed
                 line = br.readLine();
-                if (line.contains(function)) {
-                    System.out.println("Line contains " + function);
+                if (line.contains("DISABLED")) {
+                    System.out.println("Line contains " + "DISABLED");
                     //System.out.println(line);
                     break;
                 }

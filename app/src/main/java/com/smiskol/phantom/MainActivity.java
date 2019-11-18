@@ -276,16 +276,16 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             if (method[0].equals("move") || method[0].equals("move_with_wheel") || method[0].equals("move_message")) {
                 String[] params;
                 if (useMph) {
-                    params = new String[]{"true", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringTorque), method[0]};
+                    params = new String[]{"True", String.valueOf(desiredSpeed * 0.44704), String.valueOf(steeringTorque), method[0]};
                 } else {
-                    params = new String[]{"true", String.valueOf(desiredSpeed / 3.6), String.valueOf(steeringTorque), method[0]};
+                    params = new String[]{"True", String.valueOf(desiredSpeed / 3.6), String.valueOf(steeringTorque), method[0]};
                 }
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("wheel")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringTorque), method[0]};
+                String[] params = new String[]{"True", "0", String.valueOf(steeringTorque), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else if (method[0].equals("brake") || method[0].equals("brake_no_message")) {
-                String[] params = new String[]{"true", "0", String.valueOf(steeringTorque), method[0]};
+                String[] params = new String[]{"True", "0", String.valueOf(steeringTorque), method[0]};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             }
         }

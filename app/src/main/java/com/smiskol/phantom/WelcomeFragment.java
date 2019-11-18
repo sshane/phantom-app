@@ -217,7 +217,7 @@ public class WelcomeFragment extends Fragment {
         protected void onPostExecute(Integer result) {
             if (result == 0) {
                 moveDownAnimation();
-                String[] params = new String[]{"true", "0", "0", "enable"};
+                String[] params = new String[]{"True", "0", "0", "enable"};
                 new sendPhantomCommand().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params); //enable phantom mode on EON
                 return;
             }
