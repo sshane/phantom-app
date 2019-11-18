@@ -80,8 +80,6 @@ public class SSHClass {
                 os.write("from selfdrive.phantom_receiver import PhantomReceiver\n".getBytes());
                 os.write("PR=PhantomReceiver()\n".getBytes());
                 os.write("PR.enable_phantom()\n".getBytes());
-
-                //waitForEON("ENABLED");  //probably not required here
                 return 0;
             }
         } catch (java.net.SocketTimeoutException e) {
